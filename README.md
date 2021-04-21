@@ -10,9 +10,11 @@ Currently uses the latest ChromeDriver to do the tasks in Google Chrome. [Downlo
 * Add user to CCV and CCV_ANNOUNCE lists in listserv
 * Add user to Brown:Services:HPC group in Grouper
 
-## Known Bugs
+## Known Problems
 * Currently only works if you input your password in correctly the first time
 * Likely will only work on Windows machines
+* Selenium will spam the terminal with unnecessary errors/warnings, so some prompts may be obscured
+* Code will have to be reworked if any of the websites involved update their structure, as it relies on the current HTML
 
 ## Potential future features
 * Ask for you to add to Google Sheets, etc. (remind you of the steps that are currently not automated)
