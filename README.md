@@ -1,6 +1,6 @@
 # ccv_automation
 
-An automation script created using Python and Selenium for automating ticket creation
+An automation script created using Python and Selenium for automating account creation
 
 ## Required Installations
 Requires Selenium for Python. This can usually be installed by `python -m pip install selenium`.  
