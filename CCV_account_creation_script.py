@@ -30,7 +30,8 @@ class ScriptUserCredentials:
 
 class UserInfo:
     """ Stores a user's information """
-    def __init__(self, username, email):
+    def __init__(self, first_name, username, email):
+        self.first_name = first_name
         self.username = username
         self.email = email
 
@@ -50,7 +51,7 @@ def main():
         listserv_password = getpass.getpass(prompt="Your listserv password (will not show characters): ")
         your_credentials = ScriptUserCredentials(your_username, your_email, brown_password, listserv_password)
     else:
-        # if user does not want to be logged in automatically, set your_info to None
+        # if user does not want to be logged in automatically, set your_credentials to None
         your_credentials = None
 
     running = True
@@ -58,11 +59,12 @@ def main():
         print("Now input the requested information about the user whose account you are creating")
         user_id = input("User id: ")
         user_email = input("User email: ")
-        next_user = UserInfo(user_id, user_email)
+        user_first_name = input("User's first name: ")
+        next_user = UserInfo(user_first_name, user_id, user_email)
 
-        #add_user_to_grouper(your_info, user_email)
         add_user_to_grouper(your_credentials, next_user.email)
-        add_user_to_listserv(your_credentials, next_user.email)    
+        add_user_to_listserv(your_credentials, next_user.email)
+        generate_user_notification(next_user)    
     
     # NOTIFY USER
     # driver.get("https://groups.brown.edu/grouper/browseStemsAll.do")
@@ -181,6 +183,24 @@ def add_user_to_listserv(your_credentials, user_email):
             print("User has been added to list " + list)
         else:
             print("Failed to add user to list" + list)
+
+def generate_user_notification(user_info):
+    """ Generates a message in HTML to send back to the user to notify them that their account has been created"""
+    print(""" 
+    <p></p><p><span></span></p><p></p><p></p><p></p><p>Hi {first_name},</p><p><br></p><p>Your Oscar account was created -
+     you should be able to login with the same credentials as used for other Brown services. Let us know if you encounter any issues. 
+     To access via terminal/command line: </p><p></p><pre class="dp-pre">ssh {username}@ssh.ccv.brown.edu
+     </pre><p></p><p><span><span>
+     Documentation for new users can be found at this link:&nbsp;</span><a href="https://docs.ccv.brown.edu/oscar/getting-started">
+     <span>https://docs.ccv.brown.edu/oscar/getting-started</span></a><span>.</span></span></p><p><span><span>
+     We offer workshops on using Oscar, upcoming sessions can be found at this link:&nbsp;</span><a href="https://events.brown.edu/ccv/view/all">
+     <span>https://events.brown.edu/ccv/view/all</span></a></span></p><p><span><span><strong>Note: </strong>
+     This account and all CCV systems fall under the Computing Policy for Brown University. You can review this policy at </span>
+     <a href="https://it.brown.edu/computing-policies"><span>https://it.brown.edu/computing-policies</span></a></span></p><p><br></p>
+     <p>Thank you,</p>
+     <p><br></p>
+     <p></p>
+    """.format(first_name = user_info.first_name, username = user_info.username))
 
 def confirm_action(message):
     """ Presents a simple confirmation message and returns True if the input is 'y' or 'yes', returns False otherwise """
