@@ -9,10 +9,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
-class ScriptUserInfo:
+class ScriptUserCredentials:
     """ Holds the information of the user using the script """
     def __init__(self, username, email, brown_password, listserv_password):
         """ Creates a new instance of ScriptUserInfo """
@@ -39,22 +38,31 @@ class UserInfo:
 def main():
     ''' The main function of the program '''
     print("Selenium will spam the terminal with unnecessary errors initially, so you may not see all the prompts")
-    print("Please insert the following information about you as it is requested. Information will be stored only for use in the program.")
-    your_email = input("Your email: ")
-    your_username = input("Your username: ")
-    brown_password = getpass.getpass(prompt="Your Brown password (will not show characters): ")
-    listserv_password = getpass.getpass(prompt="Your listserv password (will not show characters): ")
+    print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
-    # Store the script user's info into a ScriptUserInfo
-    your_info = ScriptUserInfo(your_username, your_email, brown_password, listserv_password)
+    automatic_login = confirm_action("Would you like to be logged in to services automatically (passwords will not be stored)? (y/n)")
 
-    # TODO make this into a for-loop
-    print("Now input the requested information about the user whose account you are creating")
-    #user_id = input("User id: ") <-- currently not necessary
-    user_email = input("User email: ")
+    if (automatic_login):
+        # Store the script user's info into a ScriptUserCredentials if they want to be logged in automatically
+        your_email = input("Your email: ")
+        your_username = input("Your username: ")
+        brown_password = getpass.getpass(prompt="Your Brown password (will not show characters): ")
+        listserv_password = getpass.getpass(prompt="Your listserv password (will not show characters): ")
+        your_credentials = ScriptUserCredentials(your_username, your_email, brown_password, listserv_password)
+    else:
+        # if user does not want to be logged in automatically, set your_info to None
+        your_credentials = None
 
-    add_user_to_grouper(your_info, user_email)
-    add_user_to_listserv(your_info, user_email)    
+    running = True
+    while (running):
+        print("Now input the requested information about the user whose account you are creating")
+        user_id = input("User id: ")
+        user_email = input("User email: ")
+        next_user = UserInfo(user_id, user_email)
+
+        #add_user_to_grouper(your_info, user_email)
+        add_user_to_grouper(your_credentials, next_user.email)
+        add_user_to_listserv(your_credentials, next_user.email)    
     
     # NOTIFY USER
     # driver.get("https://groups.brown.edu/grouper/browseStemsAll.do")
@@ -62,10 +70,11 @@ def main():
     # driver.get("https://groups.brown.edu/grouper/populateFindNewMembers.do?extension=ALL&displayNameDb=BROWN%3ASERVICES%3AHPC%3AALL&displayName=BROWN%3ASERVICES%3AHPC%3AALL&typeOfGroupDb=group&groupId=a815bed6b1ae442d9d4df08c4f3d61ff&description=&stemId=7d3f0eb75c2c4e1f9f95a9e5128f1d2b&subjectType=group&uuid=a815bed6b1ae442d9d4df08c4f3d61ff&subjectId=a815bed6b1ae442d9d4df08c4f3d61ff&modifierUuid=912ee0429eac4947894109787475a30a&displayExtensionDb=ALL&nameDb=BROWN%3ASERVICES%3AHPC%3AALL&parentStemName=BROWN%3ASERVICES%3AHPC&id=a815bed6b1ae442d9d4df08c4f3d61ff&group=Group%5Bname%3DBROWN%3ASERVICES%3AHPC%3AALL%2Cuuid%3Da815bed6b1ae442d9d4df08c4f3d61ff%5D&creatorUuid=7c3179121b454e9b8efea1865b1732cf&alternateName=&contextId=0b4d123a937a444baf22a65fd63f4c1b&parentUuid=7d3f0eb75c2c4e1f9f95a9e5128f1d2b&displayExtension=ALL&groupName=ALL&name=BROWN%3ASERVICES%3AHPC%3AALL&extensionDb=ALL&isGroup=true&alternateNameDb=&descriptionDb=&desc=ALL")
 
 
-def add_user_to_grouper(your_info, search_term):
+def add_user_to_grouper(your_credentials, search_term):
     ''' Adds the user to the group Brown:Services:HPC using the provided search_term '''
     driver.get("https://groups.brown.edu")
-    automatic_login = confirm_action("Would you like to be logged in automatically? (y/n)")
+
+    automatic_login = not (your_credentials == None)
     
     # Log into Grouper
     while "Grouper, the Internet2 groups" not in driver.title:
@@ -76,9 +85,9 @@ def add_user_to_grouper(your_info, search_term):
             username_box = driver.find_element_by_id("username")
             password_box = driver.find_element_by_id("password")
             username_box.clear()
-            username_box.send_keys(your_info.username)
+            username_box.send_keys(your_credentials.username)
             password_box.clear()
-            password_box.send_keys(your_info.brown_password)
+            password_box.send_keys(your_credentials.brown_password)
             try: 
                 driver.find_element_by_xpath("//button[@value='Login']").click()
                 # Account for Duo login
@@ -122,26 +131,22 @@ def add_user_to_grouper(your_info, search_term):
         return True
 
 
-def add_user_to_listserv(your_info, user_email):
+def add_user_to_listserv(your_credentials, user_email):
     ''' Adds the user to the CCV and CCV_ANNOUNCE listserv lists '''
     print("add user to listserv")
 
-    automatic_login = True #confirm_automatic_login
-
+    automatic_login = not (your_credentials == None)
     driver.get("https://listserv.brown.edu/")
-    login_cell = driver.find_element_by_id("login.cell")
     
     while "Logged in as:" not in driver.page_source:
         if automatic_login:
-            # https://listserv.brown.edu/cgi-bin/wa?LOGON
-            login_cell = driver.find_element_by_id("login.cell")
-            login_cell.click()
+            driver.get("https://listserv.brown.edu/cgi-bin/wa?LOGON")
             email_input_box = driver.find_element_by_id("Email Address")
             email_input_box.clear()
-            email_input_box.send_keys(your_info.email)
+            email_input_box.send_keys(your_credentials.email)
             password_input_box = driver.find_element_by_id("Password")
             password_input_box.clear()
-            password_input_box.send_keys(your_info.listserv_password)
+            password_input_box.send_keys(your_credentials.listserv_password)
             password_input_box.send_keys(Keys.RETURN)
             # driver.find_element_by_xpath("//input[@type='submit' and value='Log In']").click()
             try:
@@ -153,9 +158,12 @@ def add_user_to_listserv(your_info, user_email):
                 continue
         else:
             # Log in to Grouper manually
-            print("Waiting for listserv login")
-            # continually check for logout.cell/login.cell
-            # TODO
+            try:
+                print("Waiting for listserv login")
+                WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.ID, "logout.cell")))
+                break
+            except:
+                timeout_action(driver)
 
     lists_to_add = ["CCV", "CCV_ANNOUNCE"]
 
@@ -172,13 +180,18 @@ def add_user_to_listserv(your_info, user_email):
         elif "has been added" in driver.page_source:
             print("User has been added to list " + list)
         else:
-            print("Failed to add user to list")
+            print("Failed to add user to list" + list)
 
 def confirm_action(message):
     """ Presents a simple confirmation message and returns True if the input is 'y' or 'yes', returns False otherwise """
     automatic_login_response = input(message).casefold()
     return (automatic_login_response == "y" or automatic_login_response == "yes")
 
+def timeout_action(driver_in_use):
+    """ Prints a timeout statement to the user and closes the driver and program """
+    print("Action failed to complete in time, closing driver")
+    driver_in_use.close()
+    sys.exit(1)
 
 main()
 
