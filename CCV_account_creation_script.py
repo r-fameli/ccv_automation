@@ -1,4 +1,8 @@
+""" CCV Ticket Creation Script
 
+This script will automate many of the browser-based processes for creating new users for 
+CCV's Oscar service.
+"""
 import sys
 import time
 import getpass
@@ -10,6 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
+# geckodriver downloads: https://github.com/mozilla/geckodriver/releases
 
 class ScriptUserCredentials:
     """ Holds the information of the user using the script """
@@ -37,7 +42,7 @@ class UserInfo:
 
 
 def main():
-    ''' The main function of the program '''
+    """ The main function of the program """
     print("Selenium will spam the terminal with unnecessary errors initially, so you may not see all the prompts")
     print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
@@ -62,9 +67,15 @@ def main():
         user_first_name = input("User's first name: ")
         next_user = UserInfo(user_first_name, user_id, user_email)
 
+        # TODO add_user_to_google_sheet()
+        # TODO verify or add PI
+        # TODO add user in Webmin, including priority groups if required
+        add_user_to_google_sheets(next_user.username, "") # TODO
+        add_user_in_webmin("", next_user.username) # TODO
         add_user_to_grouper(your_credentials, next_user.email)
         add_user_to_listserv(your_credentials, next_user.email)
-        generate_user_notification(next_user)    
+        generate_user_notification_html(next_user)
+
     
     # NOTIFY USER
     # driver.get("https://groups.brown.edu/grouper/browseStemsAll.do")
@@ -72,8 +83,42 @@ def main():
     # driver.get("https://groups.brown.edu/grouper/populateFindNewMembers.do?extension=ALL&displayNameDb=BROWN%3ASERVICES%3AHPC%3AALL&displayName=BROWN%3ASERVICES%3AHPC%3AALL&typeOfGroupDb=group&groupId=a815bed6b1ae442d9d4df08c4f3d61ff&description=&stemId=7d3f0eb75c2c4e1f9f95a9e5128f1d2b&subjectType=group&uuid=a815bed6b1ae442d9d4df08c4f3d61ff&subjectId=a815bed6b1ae442d9d4df08c4f3d61ff&modifierUuid=912ee0429eac4947894109787475a30a&displayExtensionDb=ALL&nameDb=BROWN%3ASERVICES%3AHPC%3AALL&parentStemName=BROWN%3ASERVICES%3AHPC&id=a815bed6b1ae442d9d4df08c4f3d61ff&group=Group%5Bname%3DBROWN%3ASERVICES%3AHPC%3AALL%2Cuuid%3Da815bed6b1ae442d9d4df08c4f3d61ff%5D&creatorUuid=7c3179121b454e9b8efea1865b1732cf&alternateName=&contextId=0b4d123a937a444baf22a65fd63f4c1b&parentUuid=7d3f0eb75c2c4e1f9f95a9e5128f1d2b&displayExtension=ALL&groupName=ALL&name=BROWN%3ASERVICES%3AHPC%3AALL&extensionDb=ALL&isGroup=true&alternateNameDb=&descriptionDb=&desc=ALL")
 
 
-def add_user_to_grouper(your_credentials, search_term):
-    ''' Adds the user to the group Brown:Services:HPC using the provided search_term '''
+def add_user_to_google_sheets( username: str, sheets_string: str) -> None:
+    """ Reminds the user to add the individual to the Google Sheets
+    
+    Args:
+        username (str): the username of the user to add to the sheet
+        sheet_string(str): the string to be inserted into Google Sheets
+    Returns:
+        None
+    """
+    # TODO Check that user has not already been added to Google Sheets
+    # Copy last line in application to bottom sheet and split text to columns
+    # Check for PI email in pi_lookup sheet
+    input("Add user " + username + " to the Google Sheet (remember to check for PI in pi_lookup). Press enter once completed")
+
+def add_user_in_webmin(batch_string_file: str, username: str) -> None:
+    """ Adds the user in webmin using the batch job string 
+    
+    Args:
+        batch_string_file (str): the string that will be used to create the user
+        username(str): the user's AD username
+    Returns:
+        None
+    """
+    input("Add user " + username + " to Webmin. Press enter once completed")
+
+
+def add_user_to_grouper(your_credentials: ScriptUserCredentials, search_term: str) -> None:
+    """ Adds the user to the group Brown:Services:HPC using the provided search_term 
+    
+    Args:
+        your_credentials (ScriptUserCredentials): the credentials of the person using the script (used for login)
+        search_term (str): the string to search for in grouper (typically email or username)
+    Returns:
+        None
+    """
+    print("Adding user " + search_term + " to grouper")
     driver.get("https://groups.brown.edu")
 
     automatic_login = not (your_credentials == None)
@@ -133,9 +178,16 @@ def add_user_to_grouper(your_credentials, search_term):
         return True
 
 
-def add_user_to_listserv(your_credentials, user_email):
-    ''' Adds the user to the CCV and CCV_ANNOUNCE listserv lists '''
-    print("add user to listserv")
+def add_user_to_listserv(your_credentials: ScriptUserCredentials, user_email: str) -> None:
+    """ Adds the user to the CCV and CCV_ANNOUNCE listserv lists
+    
+    Args:
+        your_credentials (ScriptUserCredentials): credentials of the script user for logging into listserv
+        user_email (str): the email of the user
+    Returns:
+        None
+    """
+    print("Adding user email " + user_email + " to listserv")
 
     automatic_login = not (your_credentials == None)
     driver.get("https://listserv.brown.edu/")
@@ -184,8 +236,14 @@ def add_user_to_listserv(your_credentials, user_email):
         else:
             print("Failed to add user to list" + list)
 
-def generate_user_notification(user_info):
-    """ Generates a message in HTML to send back to the user to notify them that their account has been created"""
+def generate_user_notification_html(user_info: UserInfo) -> None:
+    """ Generates a message in HTML to send back to the user in Deskpro to notify them that their account has been created
+
+    Args:
+        user_info (UserInfo): the information of the user that stores their name and username
+    Returns:
+        None: prints an HTML string that can be input using Deskpro's html feature
+    """
     print(""" 
     <p></p><p><span></span></p><p></p><p></p><p></p><p>Hi {first_name},</p><p><br></p><p>Your Oscar account was created -
      you should be able to login with the same credentials as used for other Brown services. Let us know if you encounter any issues. 
@@ -202,13 +260,25 @@ def generate_user_notification(user_info):
      <p></p>
     """.format(first_name = user_info.first_name, username = user_info.username))
 
-def confirm_action(message):
-    """ Presents a simple confirmation message and returns True if the input is 'y' or 'yes', returns False otherwise """
+def confirm_action(message: str) -> bool:
+    """ Presents a simple confirmation message and returns True if the input is 'y' or 'yes', returns False otherwise
+    
+    Args:
+        message (str): the message to be presented to the user
+    Returns:
+        bool: True if the user inputs 'y' or 'yes'. Otherwise false
+    """
     automatic_login_response = input(message).casefold()
     return (automatic_login_response == "y" or automatic_login_response == "yes")
 
-def timeout_action(driver_in_use):
-    """ Prints a timeout statement to the user and closes the driver and program """
+def timeout_action(driver_in_use) -> None:
+    """ Prints a timeout statement to the user and closes the driver and program 
+    
+    Args:
+        driver_in_use (WebDriver): the driver that is currently being used
+    Returns:
+        None
+    """
     print("Action failed to complete in time, closing driver")
     driver_in_use.close()
     sys.exit(1)
