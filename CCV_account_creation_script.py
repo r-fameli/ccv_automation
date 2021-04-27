@@ -11,10 +11,12 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager 
+from webdriver_manager.firefox import GeckoDriverManager
 
-driver = webdriver.Chrome(ChromeDriverManager().install())
+driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
 # geckodriver downloads: https://github.com/mozilla/geckodriver/releases
+# pip install webdriver-manager
 
 class ScriptUserCredentials:
     """ Holds the information of the user using the script """
@@ -43,7 +45,6 @@ class UserInfo:
 
 def main():
     """ The main function of the program """
-    print("Selenium will spam the terminal with unnecessary errors initially, so you may not see all the prompts")
     print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
     automatic_login = confirm_action("Would you like to be logged in to services automatically (passwords will not be stored)? (y/n)")
@@ -62,6 +63,7 @@ def main():
     running = True
     while (running):
         print("Now input the requested information about the user whose account you are creating")
+        # TODO parse id, email, etc. from Google Sheets string
         user_id = input("User id: ")
         user_email = input("User email: ")
         user_first_name = input("User's first name: ")

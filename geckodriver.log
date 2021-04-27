@@ -1,0 +1,17 @@
+1619538823135	geckodriver	INFO	Listening on 127.0.0.1:60932
+1619538826162	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\rikif\\AppData\\Local\\Temp\\rust_mozprofile1vJvVp"
+1619538827283	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1619538835595	Marionette	INFO	Listening on port 60941
+1619538835937	Marionette	WARN	TLS certificate errors will be ignored for this session
+1619538895488	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:237:19
+TimedPromise@chrome://marionette/content/sync.js:222:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:431:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1619538901657	Marionette	WARN	Ignoring event 'DOMContentLoaded' because document has an invalid readyState of 'complete'.
+1619538909948	Marionette	WARN	Ignoring event 'DOMContentLoaded' because document has an invalid readyState of 'complete'.
+1619538944899	Marionette	INFO	Stopped listening on port 60941
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
