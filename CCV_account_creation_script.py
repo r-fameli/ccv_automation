@@ -6,12 +6,12 @@ CCV's Oscar service.
 import sys
 import time
 import getpass
+import re
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from webdriver_manager.chrome import ChromeDriverManager 
 from webdriver_manager.firefox import GeckoDriverManager
 
 driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
@@ -62,28 +62,32 @@ def main():
 
     running = True
     while (running):
-        print("Now input the requested information about the user whose account you are creating")
-        # TODO parse id, email, etc. from Google Sheets string
-        user_id = input("User id: ")
-        user_email = input("User email: ")
-        user_first_name = input("User's first name: ")
+        print('''
+        
+        CREATING NEW USER ACCOUNT
+        ==============================
+        Copy the full string from Deskpro that holds the user's information (e.g. 4/20/2021 - 09:15,uname@brown.edu,Full Name,email@brown.edu,pi_email@brown.edu,123456789)
+        ''')
+        # Example: 4/20/2021 - 09:15,rfameli1@brown.edu,Riki Fameli,riki_fameli@brown.edu,pi_email@brown.edu,620123553
+        account_creation_strings = input("Account creation string: ").split(',')
+        user_id = account_creation_strings[1].split('@')[0]
+        user_first_name = account_creation_strings[2].split(' ')[0]
+        user_email = account_creation_strings[3]
+
         next_user = UserInfo(user_first_name, user_id, user_email)
 
-        # TODO add_user_to_google_sheet()
-        # TODO verify or add PI
-        # TODO add user in Webmin, including priority groups if required
         add_user_to_google_sheets(next_user.username, "") # TODO
-        add_user_in_webmin("", next_user.username) # TODO
+        add_user_in_webmin("", next_user.username) # TODO add user in Webmin if possible, including priority groups if required
         add_user_to_grouper(your_credentials, next_user.email)
         add_user_to_listserv(your_credentials, next_user.email)
+
+        time.sleep(1)
         generate_user_notification_html(next_user)
-
+        running = confirm_action("Would you like to add another user? (y/n)")
     
-    # NOTIFY USER
-    # driver.get("https://groups.brown.edu/grouper/browseStemsAll.do")
-    # driver.get("https://groups.brown.edu/grouper/populateGroupSummary.do?groupId=a815bed6b1ae442d9d4df08c4f3d61ff")
-    # driver.get("https://groups.brown.edu/grouper/populateFindNewMembers.do?extension=ALL&displayNameDb=BROWN%3ASERVICES%3AHPC%3AALL&displayName=BROWN%3ASERVICES%3AHPC%3AALL&typeOfGroupDb=group&groupId=a815bed6b1ae442d9d4df08c4f3d61ff&description=&stemId=7d3f0eb75c2c4e1f9f95a9e5128f1d2b&subjectType=group&uuid=a815bed6b1ae442d9d4df08c4f3d61ff&subjectId=a815bed6b1ae442d9d4df08c4f3d61ff&modifierUuid=912ee0429eac4947894109787475a30a&displayExtensionDb=ALL&nameDb=BROWN%3ASERVICES%3AHPC%3AALL&parentStemName=BROWN%3ASERVICES%3AHPC&id=a815bed6b1ae442d9d4df08c4f3d61ff&group=Group%5Bname%3DBROWN%3ASERVICES%3AHPC%3AALL%2Cuuid%3Da815bed6b1ae442d9d4df08c4f3d61ff%5D&creatorUuid=7c3179121b454e9b8efea1865b1732cf&alternateName=&contextId=0b4d123a937a444baf22a65fd63f4c1b&parentUuid=7d3f0eb75c2c4e1f9f95a9e5128f1d2b&displayExtension=ALL&groupName=ALL&name=BROWN%3ASERVICES%3AHPC%3AALL&extensionDb=ALL&isGroup=true&alternateNameDb=&descriptionDb=&desc=ALL")
-
+    # End the program by closing the driver
+    driver.quit()
+    
 
 def add_user_to_google_sheets( username: str, sheets_string: str) -> None:
     """ Reminds the user to add the individual to the Google Sheets
@@ -137,12 +141,11 @@ def add_user_to_grouper(your_credentials: ScriptUserCredentials, search_term: st
             username_box.send_keys(your_credentials.username)
             password_box.clear()
             password_box.send_keys(your_credentials.brown_password)
+            password_box.send_keys(Keys.RETURN)
             try: 
-                driver.find_element_by_xpath("//button[@value='Login']").click()
                 # Account for Duo login
-                print("Waiting for secondary authentication (Will timeout after 20 seconds)")
-                WebDriverWait(driver, 20).until(EC.title_contains("Grouper, the Internet2 groups"))
-                print("Adding user to Grouper")
+                print("Waiting for secondary authentication (Will timeout after 30 seconds)")
+                WebDriverWait(driver, 30).until(EC.title_contains("Grouper, the Internet2 groups"))
                 break
             except:
                 print("Automatic login failed, please login to Grouper manually")
@@ -150,11 +153,12 @@ def add_user_to_grouper(your_credentials: ScriptUserCredentials, search_term: st
                 continue
         else:
             # Log in to Grouper manually
-            print("Waiting for Grouper login")
+            print("Waiting for manual Grouper login")
             WebDriverWait(driver, 60).until_not(EC.title_contains("Brown University"))
             WebDriverWait(driver, 30).until(EC.title_contains("Grouper, the Internet2 groups"))
-            print("Logged in successfully")
             break
+
+    print("Logged in successfully")
     
     # Search for the user in the Brown:Services:HPC group
     driver.get("https://groups.brown.edu/grouper/populateGroupSummary.do?groupId=a815bed6b1ae442d9d4df08c4f3d61ff")
@@ -204,7 +208,6 @@ def add_user_to_listserv(your_credentials: ScriptUserCredentials, user_email: st
             password_input_box.clear()
             password_input_box.send_keys(your_credentials.listserv_password)
             password_input_box.send_keys(Keys.RETURN)
-            # driver.find_element_by_xpath("//input[@type='submit' and value='Log In']").click()
             try:
                 WebDriverWait(driver, 10).until("Logged in as:" in driver.page_source)
                 break
@@ -221,6 +224,7 @@ def add_user_to_listserv(your_credentials: ScriptUserCredentials, user_email: st
             except:
                 timeout_action(driver)
 
+    print("Logged into listserv")
     lists_to_add = ["CCV", "CCV_ANNOUNCE"]
 
     for list in lists_to_add:
@@ -230,13 +234,16 @@ def add_user_to_listserv(your_credentials: ScriptUserCredentials, user_email: st
         email_input_box.clear()
         email_input_box.send_keys(user_email)
         email_input_box.send_keys(Keys.RETURN)
-
-        if "already subscribed" in driver.page_source:
+        # sleep so that the page has time to load and see if 
+        time.sleep(1)
+        message = driver.find_element_by_xpath("//td[@class='message']")
+        message_text = message.get_attribute('innerText')
+        if "already subscribed" in message_text:
             print("User is already subscribed to list " + list)
-        elif "has been added" in driver.page_source:
+        elif "has been added" in message_text:
             print("User has been added to list " + list)
         else:
-            print("Failed to add user to list" + list)
+            print("Failed to add user to list " + list)
 
 def generate_user_notification_html(user_info: UserInfo) -> None:
     """ Generates a message in HTML to send back to the user in Deskpro to notify them that their account has been created
@@ -247,10 +254,13 @@ def generate_user_notification_html(user_info: UserInfo) -> None:
         None: prints an HTML string that can be input using Deskpro's html feature
     """
     print(""" 
+
+    NOTIFY USER
+    ==============================
+
     <p></p><p><span></span></p><p></p><p></p><p></p><p>Hi {first_name},</p><p><br></p><p>Your Oscar account was created -
      you should be able to login with the same credentials as used for other Brown services. Let us know if you encounter any issues. 
-     To access via terminal/command line: </p><p></p><pre class="dp-pre">ssh {username}@ssh.ccv.brown.edu
-     </pre><p></p><p><span><span>
+     To access via terminal/command line: </p><p></p><pre class="dp-pre">ssh {username}@ssh.ccv.brown.edu</pre><p>
      Documentation for new users can be found at this link:&nbsp;</span><a href="https://docs.ccv.brown.edu/oscar/getting-started">
      <span>https://docs.ccv.brown.edu/oscar/getting-started</span></a><span>.</span></span></p><p><span><span>
      We offer workshops on using Oscar, upcoming sessions can be found at this link:&nbsp;</span><a href="https://events.brown.edu/ccv/view/all">
@@ -260,7 +270,11 @@ def generate_user_notification_html(user_info: UserInfo) -> None:
      <p>Thank you,</p>
      <p><br></p>
      <p></p>
+
+     ==============================
     """.format(first_name = user_info.first_name, username = user_info.username))
+    input('''In Deskpro, select the option to insert using HTML and paste the above message in. Then turn off the HTML setting.
+     Press enter once you have added your name and sent the message.''')
 
 def confirm_action(message: str) -> bool:
     """ Presents a simple confirmation message and returns True if the input is 'y' or 'yes', returns False otherwise
