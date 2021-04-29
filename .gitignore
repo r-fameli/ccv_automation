@@ -1,2 +1,5 @@
 .vscode/
 geckodriver.log
+*.txt
+test-cases.md
+todo.md

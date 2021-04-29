@@ -15,8 +15,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 
 driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
-# geckodriver downloads: https://github.com/mozilla/geckodriver/releases
-# pip install webdriver-manager
 
 class ScriptUserCredentials:
     """ Holds the information of the user using the script """
@@ -60,10 +58,10 @@ def main():
         # if user does not want to be logged in automatically, set your_credentials to None
         your_credentials = None
 
+    # Start the loop
     running = True
     while (running):
-        print('''
-        
+        print('''\n
         CREATING NEW USER ACCOUNT
         ==============================
         Copy the full string from Deskpro that holds the user's information (e.g. 4/20/2021 - 09:15,uname@brown.edu,Full Name,email@brown.edu,pi_email@brown.edu,123456789)
@@ -83,11 +81,22 @@ def main():
 
         time.sleep(1)
         generate_user_notification_html(next_user)
+        # If more users need to be added, the loop will continue running
         running = confirm_action("Would you like to add another user? (y/n)")
     
     # End the program by closing the driver
     driver.quit()
-    
+
+
+# def scrape_from_deskpro() -> list:
+#     print("")
+#     # TODO
+#     # find last element where xpath is //div[@class='body-text-message unreset'] (ENSURE THAT ONLY ONE TAB IS OPEN IN DESKPRO)
+#     # TO CLOSE ALL TABS:
+#     # right click in //div[@class='deskproTabListInner ng-isolate-scope']
+#     # click on //li[@ng-show='showCloseAll()']
+#     # 
+
 
 def add_user_to_google_sheets( username: str, sheets_string: str) -> None:
     """ Reminds the user to add the individual to the Google Sheets
@@ -234,16 +243,17 @@ def add_user_to_listserv(your_credentials: ScriptUserCredentials, user_email: st
         email_input_box.clear()
         email_input_box.send_keys(user_email)
         email_input_box.send_keys(Keys.RETURN)
-        # sleep so that the page has time to load and see if 
         time.sleep(1)
         message = driver.find_element_by_xpath("//td[@class='message']")
         message_text = message.get_attribute('innerText')
-        if "already subscribed" in message_text:
-            print("User is already subscribed to list " + list)
-        elif "has been added" in message_text:
-            print("User has been added to list " + list)
-        else:
-            print("Failed to add user to list " + list)
+        print(message_text)
+
+        # if "already subscribed" in message_text:
+        #     print("User is already subscribed to list " + list)
+        # elif "has been added" in message_text:
+        #     print("User has been added to list " + list)
+        # else:
+        #     print("Failed to add user to list " + list)
 
 def generate_user_notification_html(user_info: UserInfo) -> None:
     """ Generates a message in HTML to send back to the user in Deskpro to notify them that their account has been created
