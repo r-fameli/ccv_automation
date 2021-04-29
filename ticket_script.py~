@@ -13,7 +13,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.chrome import ChromeDriverManager
 
 # driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
 driver = webdriver.Chrome(ChromeDriverManager().install())
