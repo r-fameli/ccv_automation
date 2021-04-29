@@ -15,9 +15,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
 
-# driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
-driver = None #webdriver.Chrome(ChromeDriverManager().install())
-
 class ScriptUserCredentials:
     """ Holds the information of the user using the script """
     def __init__(self, username, email, brown_password, listserv_password):
@@ -42,25 +39,27 @@ class UserInfo:
         self.username = username
         self.email = email
 
-
-def main():
-    """ The main function of the program """
-    browser_preference = input(
+driver = None
+browser_preference = input(
         "Which browser would you like to use? Type 'chrome' for Google Chrome or 'firefox' for Firefox (Firefox recommended): "
         ).strip().casefold()
-    while True:
-        if browser_preference == 'firefox':
-            print("Initializing geckodriver for Firefox")
-            driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
-            break
-        elif browser_preference == 'chrome':
-            print("Initializing ChromeDriver for Chrome...")
-            print("ChromeDriver may spam with unnecessary errors e.g. 'Failed to read descriptor from node connection'. They can be ignored if the program is still running, but may obscure prompts")
-            driver = webdriver.Chrome(ChromeDriverManager().install())
-            break
-        else:
-            browser_preference = input("Browser " + browser_preference + " is not an option. Options are chrome and firefox. Please type your choice: ")
-    
+while True:
+    if browser_preference == 'firefox':
+        print("Initializing geckodriver for Firefox")
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
+        break
+    elif browser_preference == 'chrome':
+        print("Initializing ChromeDriver for Chrome...")
+        print('''ChromeDriver may spam with unnecessary errors e.g. 'Failed to read descriptor from node connection'. 
+        They can be ignored if the program is still running, but may obscure prompts''')
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        break
+    else:
+        browser_preference = input("Browser " + browser_preference + " is not an option. Options are chrome and firefox. Please type your choice: ")
+
+
+def main():
+    """ The main function of the program """    
 
     print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
