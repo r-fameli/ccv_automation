@@ -4,23 +4,22 @@ An automation script created using Python and Selenium for automating account cr
 
 ## Required Installations
 Utilizes Python 3 and requires Selenium for Python. This can usually be installed by `python -m pip install selenium` if you have `pip`.
-To install the web driver for Firefox, use `pip install webdriver-manager`. If the script is not able to install geckodriver using webdriver manager, (install geckodriver here)[https://github.com/mozilla/geckodriver/releases]
-
-
-
-Currently uses the latest ChromeDriver to do the tasks in Google Chrome. [Download ChromeDriver 90 here](https://sites.google.com/chromium.org/driver/). 
+This script requires web drivers for the browser you choose (either Chrome or Firefox), use `pip install webdriver-manager` to install the webdriver manager that will handle this process.
 
 ## How to Run
 * Clone the code from this repository
 * Navigate to the automation-script folder that this is in using your terminal
 * Run `python ticket_script.py` (alternatively, `python3 ticket_script.py` depending on your Python setup)
-* A Firefox browser will open up. Do not change anything in the browser unless there is a step that requires manual login. The script will only open pages for steps that it can automate
+* Choose your browser using the prompt (either Chrome or Firefox)
+    * _Note: Currently, ChromeDriver will spam with unnecessary errors soon after the web driver installs, so this may obscure some of the prompts. For this reason, Firefox is recommended._
+* A web browser will open up. Do not change anything in the browser unless there is a step that requires manual login. The script will only open pages for steps that it can automate
+    * _Note: If you would like to see the browser operations in action, move the terminal to one side of the screen and the browser to the other so that neither is obscured_
 
 ## Current Features
 * Provides reminders for Google Sheets and other tasks
 * Allows automatic login to services or waits for manual log in
-* Add user to CCV and CCV_ANNOUNCE lists in listserv
-* Add user to Brown:Services:HPC group in Grouper
+* Adds user to CCV and CCV_ANNOUNCE lists in listserv
+* Adds user to Brown:Services:HPC group in Grouper
 
 ## Known Problems
 * No way to update passwords if they are input incorrectly on startup

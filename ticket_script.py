@@ -16,7 +16,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
 
 # driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
-driver = webdriver.Chrome(ChromeDriverManager().install())
+driver = None #webdriver.Chrome(ChromeDriverManager().install())
 
 class ScriptUserCredentials:
     """ Holds the information of the user using the script """
@@ -45,15 +45,34 @@ class UserInfo:
 
 def main():
     """ The main function of the program """
+    browser_preference = input(
+        "Which browser would you like to use? Type 'chrome' for Google Chrome or 'firefox' for Firefox (Firefox recommended): "
+        ).strip().casefold()
+    while True:
+        if browser_preference == 'firefox':
+            print("Initializing geckodriver for Firefox")
+            driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
+            break
+        elif browser_preference == 'chrome':
+            print("Initializing ChromeDriver for Chrome...")
+            print("ChromeDriver may spam with unnecessary errors e.g. 'Failed to read descriptor from node connection'. They can be ignored if the program is still running, but may obscure prompts")
+            driver = webdriver.Chrome(ChromeDriverManager().install())
+            break
+        else:
+            browser_preference = input("Browser " + browser_preference + " is not an option. Options are chrome and firefox. Please type your choice: ")
+    
+
     print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
     automatic_login = confirm_action("Would you like to be logged in to services automatically (passwords will not be stored)? (y/n)")
 
     if (automatic_login):
         # Store the script user's info into a ScriptUserCredentials if they want to be logged in automatically
-        your_email = input("Your email: ")
-        your_username = input("Your username: ")
+        print("BROWN LOGIN:")
+        your_username = input("Your Brown username: ")
         brown_password = getpass.getpass(prompt="Your Brown password (will not show characters): ")
+        print("LISTSERV LOGIN:")
+        your_email = input("Your email: ")
         listserv_password = getpass.getpass(prompt="Your listserv password (will not show characters): ")
         your_credentials = ScriptUserCredentials(your_username, your_email, brown_password, listserv_password)
     else:
