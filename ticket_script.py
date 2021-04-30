@@ -15,6 +15,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
 
+
+class ScriptSettings:
+    def __init__(self, browser_preference, automatic_login, show_confirmations, use_deskpro):
+        self.browser_preference = browser_preference
+        self.automatic_login = automatic_login
+        self.show_confirmations = show_confirmations
+        self.use_deskpro = use_deskpro
+
+
 class ScriptUserCredentials:
     """ Holds the information of the user using the script """
     def __init__(self, username, email, brown_password, listserv_password):
