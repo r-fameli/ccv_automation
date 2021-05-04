@@ -2,6 +2,10 @@
 
 An automation script created using Python and Selenium for automating account creation
 
+## CURRENT PROBLEMS
+* Recent changes caused the Grouper automation to not work
+* Passwords currently not encrypted - use manual login for now
+
 ## Required Installations
 Utilizes Python 3 and requires Selenium for Python. This can usually be installed by `python -m pip install selenium` if you have `pip`.
 This script requires web drivers for the browser you choose (either Chrome or Firefox), use `pip install webdriver-manager` to install the webdriver manager that will handle this process.
