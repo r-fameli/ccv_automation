@@ -89,12 +89,12 @@ def add_user_to_grouper(driver: webdriver, your_credentials: ScriptUserCredentia
     return True
 
 
-# Run this file to test Grouper
-add_user_to_grouper(
-    webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()),
-    None,
-    "riki_fameli@brown.edu"
-)
+# Run this to test Grouper
+# add_user_to_grouper(
+#     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()),
+#     None,
+#     "riki_fameli@brown.edu"
+# )
 
 
 # NEW UI

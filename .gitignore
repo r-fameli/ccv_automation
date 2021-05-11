@@ -4,3 +4,4 @@ geckodriver.log
 test-cases.md
 todo.md
 _pycache_/
+__pycache__/
