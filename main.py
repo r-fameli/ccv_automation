@@ -10,7 +10,7 @@ import re
 
 # local file imports
 from utils import confirm_action, timeout_action
-from user_data import ScriptUserCredentials, User
+from user_data import User
 
 from grouper import add_user_to_grouper
 from listserv import add_user_to_listserv
@@ -30,23 +30,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 def main():
     """ The main function of the program """    
     driver = choose_driver()
-
-    print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
-
-    automatic_login = confirm_action("Would you like to be logged in to services automatically (passwords will not be stored)? (y/n)")
-
-    if (automatic_login):
-        # Store the script user's info into a ScriptUserCredentials if they want to be logged in automatically
-        print("BROWN LOGIN:")
-        your_username = input("Your Brown username: ")
-        brown_password = getpass.getpass(prompt="Your Brown password (will not show characters): ")
-        print("LISTSERV LOGIN:")
-        your_email = input("Your email: ")
-        listserv_password = getpass.getpass(prompt="Your listserv password (will not show characters): ")
-        your_credentials = ScriptUserCredentials(your_username, your_email, brown_password, listserv_password)
-    else:
-        # if user does not want to be logged in automatically, set your_credentials to None
-        your_credentials = None
+    # print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
     # Start the loop
     running = True
@@ -67,8 +51,8 @@ def main():
 
         add_user_to_google_sheets(next_user.username, "") # TODO
         add_user_in_webmin("", next_user.username) # TODO add user in Webmin if possible, including priority groups if required
-        add_user_to_grouper(driver, your_credentials, next_user.email)
-        add_user_to_listserv(driver, your_credentials, next_user.email)
+        add_user_to_grouper(driver, next_user.email)
+        add_user_to_listserv(driver, next_user.email)
 
         time.sleep(1)
         generate_user_notification_html(next_user)
@@ -78,15 +62,6 @@ def main():
     # End the program by closing the driver
     driver.quit()
 
-
-# def scrape_from_deskpro() -> list:
-#     print("")
-#     # TODO
-#     # find last element where xpath is //div[@class='body-text-message unreset'] (ENSURE THAT ONLY ONE TAB IS OPEN IN DESKPRO)
-#     # TO CLOSE ALL TABS:
-#     # right click in //div[@class='deskproTabListInner ng-isolate-scope']
-#     # click on //li[@ng-show='showCloseAll()']
-#     # 
 
 def choose_driver():
     """ Asks the user for their browser preference and returns the corresponding browser driver if availablepygame.examples.mask.main()

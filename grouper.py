@@ -11,10 +11,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.firefox import GeckoDriverManager
 
-from user_data import ScriptUserCredentials
+from utils import timeout_action
 
 
-def add_user_to_grouper(driver: webdriver, your_credentials: ScriptUserCredentials, search_term: str) -> None:
+def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
     """ Adds the user to the group Brown:Services:HPC using the provided search_term 
     
     Args:
@@ -26,36 +26,18 @@ def add_user_to_grouper(driver: webdriver, your_credentials: ScriptUserCredentia
     print("Adding user " + search_term + " to grouper")
     driver.get("https://groups.brown.edu")
 
-    automatic_login = not (your_credentials == None)
     
     # Log into Grouper
     while "Grouper, the Internet2 groups" not in driver.title:
-        # Attempt to log in automatically
-        if automatic_login:
-            WebDriverWait(driver, 30).until(EC.title_contains("Brown University"))
-            driver.find_element_by_xpath("//input[@value='Brown Account Login']").click()
-            username_box = driver.find_element_by_id("username")
-            password_box = driver.find_element_by_id("password")
-            username_box.clear()
-            username_box.send_keys(your_credentials.username)
-            password_box.clear()
-            password_box.send_keys(your_credentials.brown_password)
-            password_box.send_keys(Keys.RETURN)
-            try: 
-                # Account for Duo login
-                print("Waiting for secondary authentication (Will timeout after 30 seconds)")
-                WebDriverWait(driver, 30).until(EC.title_contains("Grouper, the Internet2 groups"))
-                break
-            except:
-                print("Automatic login failed, please login to Grouper manually")
-                automatic_login = False
-                continue
-        else:
-            # Log in to Grouper manually
-            print("Waiting for manual Grouper login")
+        # Log in to Grouper manually
+        print("Waiting for manual Grouper login (times out after 60 seconds)")
+        try:
+
             WebDriverWait(driver, 60).until_not(EC.title_contains("Brown University"))
             WebDriverWait(driver, 30).until(EC.title_contains("Grouper, the Internet2 groups"))
             break
+        except:
+            timeout_action(driver)
 
     print("Logged in successfully")
 
@@ -89,10 +71,9 @@ def add_user_to_grouper(driver: webdriver, your_credentials: ScriptUserCredentia
     return True
 
 
-# Run this to test Grouper
+# Uncomment and run this to test Grouper
 # add_user_to_grouper(
 #     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()),
-#     None,
 #     "riki_fameli@brown.edu"
 # )
 
