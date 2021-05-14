@@ -10,8 +10,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from user_data import ScriptUserCredentials
-
 
 def add_user_in_webmin(batch_string_file: str, username: str) -> None:
     """ Adds the user in webmin using the batch job string 
