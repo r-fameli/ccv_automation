@@ -33,7 +33,8 @@ def main():
     # print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
     # Start the loop
-    webmin_access = confirm_action("Would you like to automate Webmin tasks as well (Requires Oscar)? (y/n)")
+    # webmin_access = confirm_action("Would you like to automate Webmin tasks as well (Requires Oscar)? (y/n)")
+    webmin_access = False
     running = True
     while (running):
         print('''\n
