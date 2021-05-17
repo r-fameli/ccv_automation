@@ -29,12 +29,13 @@ def add_user_in_webmin(driver: webdriver, batch_string: str, username: str, webm
         if "You must enter a username and password" in driver.page_source:
             driver.find_element_by_id("save").click()
             WebDriverWait(driver, 60).until(
-                EC.presence_of_element_located(By.XPATH, "//h3[@class='panel-title']"))
-                # EC.presence_of_element_located(By.XPATH("//*[contains(text(), 'System Information')]")))
+                EC.presence_of_element_located((By.XPATH, "//h3[@class='panel-title']")))
+                # EC.presence_of_element_located((By.XPATH("//*[contains(text(), 'System Information')]"))))
 
         driver.find_element_by_xpath("//a[@href='#system']").click()
         driver.find_element_by_xpath("//a[@href='/useradmin/?xnavigation=1']").click()
         driver.find_element_by_xpath("//a[@href='batch_form.cgi?xnavigation=1']").click()
+        
         # Radio button for running by Text in Box
         driver.find_element_by_id("source_2_6056").click()
         text_box = driver.find_element_by_id("text")
@@ -42,7 +43,7 @@ def add_user_in_webmin(driver: webdriver, batch_string: str, username: str, webm
         text_box.send_keys(batch_string)
         input("Inputted information into textbox. Press enter in terminal to continue")
         WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located(By.XPATH, "//div[@class='panel-body']/pre"))
+            EC.presence_of_element_located((By.XPATH, "//div[@class='panel-body']/pre")))
         message = driver.find_element_by_xpath("//div[@class='panel-body']/pre").get_attribute('innerText')
         input(message + "Press enter in terminal to continue.")
         
