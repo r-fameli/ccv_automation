@@ -70,6 +70,7 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
     input("Successfully added user " + search_term + " in Grouper. Press enter to continue")
     return True
 
+# TODO switch to using Lite UI
 
 # Uncomment and run this to test Grouper
 # add_user_to_grouper(

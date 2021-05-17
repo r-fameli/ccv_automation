@@ -27,6 +27,7 @@ def add_user_in_webmin(driver: webdriver, batch_string: str, username: str, webm
         driver.get("https://nis1:10000/")
         # Wait for login if on the login page
         if "You must enter a username and password" in driver.page_source:
+            print("Please log in manually to Webmin.")
             driver.find_element_by_id("save").click()
             WebDriverWait(driver, 60).until(
                 EC.presence_of_element_located((By.XPATH, "//h3[@class='panel-title']")))
@@ -35,15 +36,22 @@ def add_user_in_webmin(driver: webdriver, batch_string: str, username: str, webm
         driver.find_element_by_xpath("//a[@href='#system']").click()
         driver.find_element_by_xpath("//a[@href='/useradmin/?xnavigation=1']").click()
         driver.find_element_by_xpath("//a[@href='batch_form.cgi?xnavigation=1']").click()
-        
+
         # Radio button for running by Text in Box
         driver.find_element_by_id("source_2_6056").click()
         text_box = driver.find_element_by_id("text")
         text_box.clear()
         text_box.send_keys(batch_string)
-        input("Inputted information into textbox. Press enter in terminal to continue")
+        input("Inputted information into textbox. Press enter in terminal to continue.")
+        driver.find_element_by_xpath("//span[@data-entry='batch upload']")
         WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.XPATH, "//div[@class='panel-body']/pre")))
         message = driver.find_element_by_xpath("//div[@class='panel-body']/pre").get_attribute('innerText')
         input(message + "Press enter in terminal to continue.")
-        
+
+
+# TODO check for following strings:
+    # "Duplicate username"
+    # "Created user"
+# TODO check that the webmin page shows up
+

@@ -49,7 +49,10 @@ def main():
         next_user = User(user_first_name, user_id, user_email)
 
         add_user_to_google_sheets(next_user.username, "") # TODO
-        webmin_batch_string = input("Please enter the generated string for Webmin").strip()
+        if webmin_access:
+            webmin_batch_string = input("Please enter the generated string for Webmin: ").strip()
+        else:
+            webmin_batch_string = ""
         add_user_in_webmin(driver, webmin_batch_string, next_user.username, webmin_access) # TODO add user in Webmin if possible, including priority groups if required
         add_user_to_grouper(driver, next_user.email)
         add_user_to_listserv(driver, next_user.email)
