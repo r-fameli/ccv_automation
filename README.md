@@ -13,7 +13,7 @@ This script requires web drivers for the browser you choose (either Chrome or Fi
 ## How to Run
 * Clone the code from this repository
 * Navigate to the automation-script folder that this is in using your terminal
-* Run `python ticket_script.py` (alternatively, `python3 ticket_script.py` depending on your Python setup)
+* Run `python main.py` (alternatively, `python3 main.py` depending on your Python setup)
 * Choose your browser using the prompt (either Chrome or Firefox)
     * _Note: Currently, ChromeDriver will spam with unnecessary errors soon after the web driver installs, so this may obscure some of the prompts. For this reason, Firefox is recommended._
 * A web browser will open up. Do not interact with anything in the opened browser unless there is a step that requires manual login or two-factor authentication (i.e. Brown logins). The script will only open pages for steps that it can automate
@@ -21,7 +21,7 @@ This script requires web drivers for the browser you choose (either Chrome or Fi
 
 ## Current Features
 * Provides reminders for Google Sheets and other tasks
-* Allows automatic login to services or waits for manual log in
+* Waits for script user to log in manually
 * Adds user to CCV and CCV_ANNOUNCE lists in listserv
 * Adds user to Brown:Services:HPC group in Grouper
 * Generates HTML of email to send to user

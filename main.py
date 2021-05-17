@@ -10,7 +10,7 @@ import re
 
 # local file imports
 from utils import confirm_action, timeout_action
-from user_data import User
+from user_data import User, ProgramSettings
 
 from grouper import add_user_to_grouper
 from listserv import add_user_to_listserv
@@ -33,6 +33,7 @@ def main():
     # print("Please insert the following information as it is requested. Information will be stored only for use in the program.")
 
     # Start the loop
+    webmin_access = confirm_action("Would you like to automate Webmin tasks as well (Requires Oscar)? (y/n)")
     running = True
     while (running):
         print('''\n
@@ -45,12 +46,11 @@ def main():
         user_id = account_creation_strings[1].split('@')[0]
         user_first_name = account_creation_strings[2].split(' ')[0]
         user_email = account_creation_strings[3]
-
-
         next_user = User(user_first_name, user_id, user_email)
 
         add_user_to_google_sheets(next_user.username, "") # TODO
-        add_user_in_webmin("", next_user.username) # TODO add user in Webmin if possible, including priority groups if required
+        webmin_batch_string = input("Please enter the generated string for Webmin").strip()
+        add_user_in_webmin(driver, webmin_batch_string, next_user.username, webmin_access) # TODO add user in Webmin if possible, including priority groups if required
         add_user_to_grouper(driver, next_user.email)
         add_user_to_listserv(driver, next_user.email)
 
