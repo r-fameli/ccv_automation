@@ -7,6 +7,7 @@ import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.firefox import GeckoDriverManager
@@ -42,50 +43,60 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
     print("Logged in successfully")
 
     # Search for the user in the Brown:Services:HPC group
-    driver.get("https://groups.brown.edu/grouper/populateGroupSummary.do?groupId=a815bed6b1ae442d9d4df08c4f3d61ff")
-    driver.find_element_by_xpath("//span[@class='grouperTooltip' and text()='Add members']").click()
-    member_search = driver.find_element_by_id("searchTerm")
-    member_search.clear()
-    member_search.send_keys(search_term)
-    member_search.send_keys(Keys.RETURN)
+    driver.get("https://groups.brown.edu/grouper/grouperUi/appHtml/grouper.html?operation=SimpleMembershipUpdate.init&groupId=a815bed6b1ae442d9d4df08c4f3d61ff")
+    search_bar_xpath = "//input[@class='dhx_combo_input']"
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, search_bar_xpath)))
+    except:
+        timeout_action(driver)
+    search_bar = driver.find_element_by_xpath(search_bar_xpath)
+    search_bar.clear()
+    search_bar.send_keys(search_term)
 
-    # Check that there is only one user
-    # Lite UI: https://groups.brown.edu/grouper/grouperUi/appHtml/grouper.html?operation=Misc.index
-
-    # Sleep momentarily so that everything can load
-    time.sleep(2)
-    grouper_search_results = driver.find_elements_by_xpath("//input[@name='members']")
+    dropdown_option_xpath = "//div[@class='dhx_combo_list ']/div"
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, dropdown_option_xpath)))
+    grouper_search_results = driver.find_elements_by_xpath(dropdown_option_xpath)
     if len(grouper_search_results) == 0:
         input("No users found with search term " + search_term + ". Press enter to continue")
         return False
-    if len(grouper_search_results) > 1:
+    elif len(grouper_search_results) > 1:
         print("Multiple users found with search term" + search_term)
-        input("Select the correct user and press enter")
-        driver.find_element_by_xpath("//input[@class='blueButton' and @value='Assign privileges']").click()
+        print("Please click the correct user from the dropdown (will timeout after 60 seconds)")
+        try:
+            # Wait until the dropdown menu is hidden
+            WebDriverWait(driver, 60).until(EC.invisibility_of_element_located((By.XPATH, "//div[@class='dhx_combo_list '][2]")))
+        except:
+            timeout_action(driver)
     else:
-        driver.find_element_by_xpath("//input[@class='blueButton' and @value='Assign privileges']").click()
+        user_option = driver.find_element_by_xpath(dropdown_option_xpath + "/div")
+        user_info = user_option.get_attribute('innerText')
+        print("Found user " + user_info)
+        user_option.click()
 
-    message = driver.find_element_by_xpath("//div[@class='Message']").get_attribute('innerText')
+    driver.find_element_by_xpath("//input[@name='addMemberButton']").click()
+    message = driver.find_element_by_id("simplemodal-data").get_attribute('innerText')
+    if message.endswith('OK'):
+        message = message[:-2]
     print("GROUPER ==> " + message)
-    input("Successfully added user " + search_term + " in Grouper. Press enter to continue")
-    return True
+    input("Press enter to continue.")
 
-# TODO switch to using Lite UI
+    # Close the popup window
+    driver.find_element_by_xpath("//button[@class='simplemodal-close blueButton']").click()
 
-# Uncomment and run this to test Grouper
+# TESTS
+# Uncomment these and run the file to test Grouper adding
+
+# Single user
 # add_user_to_grouper(
 #     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()),
 #     "riki_fameli@brown.edu"
 # )
 
+# Multiple users
+# add_user_to_grouper(
+#     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()),
+#     "riki"
+# )
 
-# NEW UI
-# https://groups.brown.edu/grouper/new
-# Group management page:
-# https://groups.brown.edu/grouper/grouperUi/app/UiV2Main.index?operation=UiV2Group.viewGroup&groupId=a815bed6b1ae442d9d4df08c4f3d61ff
-# Add members page:
-# https://groups.brown.edu/grouper/grouperUi/app/UiV2Main.index?operation=UiV2GroupImport.groupImport&groupId=a815bed6b1ae442d9d4df08c4f3d61ff&backTo=group
-
-# OLD UI
-# Group management page:
-# https://groups.brown.edu/grouper/populateGroupSummary.do?groupId=a815bed6b1ae442d9d4df08c4f3d61ff
+# No users
+# TODO

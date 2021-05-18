@@ -7,5 +7,6 @@ class User:
 
 class ProgramSettings:
     """ Stores settings for the program, as specified by the user """
-    def __init__(self, webmin_access):
+    def __init__(self, webmin_access, batch_operations):
         self.webmin_access = webmin_access
+        self.batch_operations = batch_operations
