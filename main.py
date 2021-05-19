@@ -120,7 +120,8 @@ def generate_user_notification_html(user_info: User) -> None:
 
      ==============================
     """.format(first_name = user_info.first_name, username = user_info.username))
-    input('''In Deskpro, select the option to insert using HTML and paste the above message in. Then turn off the HTML setting.
+    input('''Copy the above message (Ctrl+Insert or Ctrl+Shift+C in Linux-based terminals). 
+    In Deskpro, select the option to insert using HTML and paste the message in. Then turn off the HTML setting.
      Press enter once you have added your name and sent the message.''')
 
 main()
