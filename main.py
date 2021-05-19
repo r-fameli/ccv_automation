@@ -3,19 +3,21 @@
 This script will automate many of the browser-based processes for creating new users for 
 CCV's Oscar service.
 """
+# python imports
 import sys
 import time
 import getpass
 import re
 
 # local file imports
-from utils import confirm_action, timeout_action
+from utils import confirm_action, timeout_action, prompt_to_choose_option
 from user_data import User, ProgramSettings
 
 from grouper import add_user_to_grouper
 from listserv import add_user_to_listserv
 from webmin import add_user_in_webmin
 from sheets import add_user_to_google_sheets
+from deskpro import generate_user_notification_html
 
 # selenium imports
 from selenium import webdriver
@@ -58,7 +60,7 @@ def main():
         add_user_to_grouper(driver, next_user.email)
         add_user_to_listserv(driver, next_user.email)
 
-        time.sleep(1)
+        time.sleep(2)
         generate_user_notification_html(next_user)
         # If more users need to be added, the loop will continue running
         running = confirm_action("Would you like to add another user? (y/n)")
@@ -74,55 +76,20 @@ def choose_driver():
         webdriver: either a ChromeDriver (Google Chrome) or a GeckoDriver (Firefox)
     """
     driver = None
-    browser_preference = input(
-            "Which browser would you like to use? Type 'chrome' for Google Chrome or 'firefox' for Firefox (Firefox recommended): "
-            ).strip().casefold()
-    while True:
-        if browser_preference == 'firefox':
-            print("Initializing geckodriver for Firefox")
-            driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
-            break
-        elif browser_preference == 'chrome':
-            print("Initializing ChromeDriver for Chrome...")
-            print('''ChromeDriver may spam with unnecessary errors e.g. 'Failed to read descriptor from node connection'. 
-            They can be ignored if the program is still running, but may obscure prompts''')
-            driver = webdriver.Chrome(ChromeDriverManager().install())
-            break
-        else:
-            browser_preference = input("Browser " + browser_preference + " is not an option. Options are chrome and firefox. Please type your choice: ")
+    browser_preference = prompt_to_choose_option(
+        "Which browser would you like to use? Type 'chrome' for Google Chrome or 'firefox' for Firefox (Firefox recommended): ",
+        ["firefox", "chrome"]
+    )
+    if browser_preference == 'firefox':
+        print("Initializing geckodriver for Firefox")
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
+    elif browser_preference == 'chrome':
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        print("Initializing ChromeDriver for Chrome...")
+        print('''ChromeDriver may spam with unnecessary errors e.g. 'Failed to read descriptor from node connection'. 
+        They can be ignored if the program is still running, but may obscure prompts''')
+
     return driver
-
-def generate_user_notification_html(user_info: User) -> None:
-    """ Generates a message in HTML to send back to the user in Deskpro to notify them that their account has been created
-
-    Args:
-        user_info (UserInfo): the information of the user that stores their name and username
-    Returns:
-        None: prints an HTML string that can be input using Deskpro's html feature
-    """
-    print(""" 
-
-    NOTIFY USER
-    ==============================
-
-    <p></p><p><span></span></p><p></p><p></p><p></p><p>Hi {first_name},</p><p><br></p><p>Your Oscar account was created -
-     you should be able to login with the same credentials as used for other Brown services. Let us know if you encounter any issues. 
-     To access via terminal/command line: </p><p></p><pre class="dp-pre">ssh {username}@ssh.ccv.brown.edu</pre><p>
-     Documentation for new users can be found at this link:&nbsp;</span><a href="https://docs.ccv.brown.edu/oscar/getting-started">
-     <span>https://docs.ccv.brown.edu/oscar/getting-started</span></a><span>.</span></span></p><p><span><span>
-     We offer workshops on using Oscar, upcoming sessions can be found at this link:&nbsp;</span><a href="https://events.brown.edu/ccv/view/all">
-     <span>https://events.brown.edu/ccv/view/all</span></a></span></p><p><span><span><strong>Note: </strong>
-     This account and all CCV systems fall under the Computing Policy for Brown University. You can review this policy at </span>
-     <a href="https://it.brown.edu/computing-policies"><span>https://it.brown.edu/computing-policies</span></a></span></p><p><br></p>
-     <p>Thank you,</p>
-     <p><br></p>
-     <p></p>
-
-     ==============================
-    """.format(first_name = user_info.first_name, username = user_info.username))
-    input('''Copy the above message (Ctrl+Insert or Ctrl+Shift+C in Linux-based terminals). 
-    In Deskpro, select the option to insert using HTML and paste the message in. Then turn off the HTML setting.
-     Press enter once you have added your name and sent the message.''')
 
 main()
 
