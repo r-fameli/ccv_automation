@@ -23,11 +23,10 @@ This script requires web drivers for the browser you choose (either Chrome or Fi
 * Generates HTML of email to send to user
 
 ## Known Problems
-* No way to update passwords if they are input incorrectly on startup
 * Has not been tested on non-Windows machines
 * Code will have to be reworked if any of the websites involved update their structure, as it relies on the current HTML
 
 ## Potential future features
 * Connect to Google Sheets API to allow for automatic insertion into the Google Sheet
-* Automate inserting batch file text into Webmin (will likely require refactoring for use on Linux machines)
+* Automate inserting batch file text into Webmin - WIP
 * Scrape from Deskpro / automatically insert into Deskpro for retrieving/sending information to/from users
