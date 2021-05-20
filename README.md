@@ -20,11 +20,13 @@ This script requires web drivers for the browser you choose (either Chrome or Fi
 * Waits for script user to log in manually
 * Adds user to CCV and CCV_ANNOUNCE lists in listserv
 * Adds user to Brown:Services:HPC group in Grouper
-* Generates HTML of email to send to user
+* Generates HTML of email to send to user in Deskpro
 
 ## Known Problems
 * Has not been tested on non-Windows machines
 * Code will have to be reworked if any of the websites involved update their structure, as it relies on the current HTML
+* Using ChromeDriver may spam the terminal with unnecessary errors
+* For some reason, print statements may not show up in certain cases. If a login screen appears and nothing is happening in the terminal. I would recommend logging and the script should take over from there.
 
 ## Potential future features
 * Connect to Google Sheets API to allow for automatic insertion into the Google Sheet

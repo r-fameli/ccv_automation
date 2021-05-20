@@ -47,3 +47,5 @@ def add_user_to_listserv(driver: webdriver, user_email: str) -> None:
         message = driver.find_element_by_xpath("//td[@class='message']")
         message_text = message.get_attribute('innerText')
         print(message_text)
+
+    input("\nListserv task completed. Press enter to continue.")

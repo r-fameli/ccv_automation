@@ -13,8 +13,8 @@ def confirm_action(message: str) -> bool:
     Returns:
         bool: True if the user inputs 'y' or 'yes'. Otherwise false
     """
-    automatic_login_response = input(message).casefold()
-    return (automatic_login_response == "y" or automatic_login_response == "yes")
+    response = prompt_to_choose_option(message, ["yes", "y", "no", "n"])
+    return (response == "y" or response == "yes")
 
 def timeout_action(driver_in_use: webdriver) -> None:
     """ Prints a timeout statement to the user and closes the driver and program 
