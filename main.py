@@ -32,12 +32,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 def main():
     """ The main function of the program """    
     driver = choose_driver()
-    # Start the loop
     # webmin_access = confirm_action("Would you like to automate Webmin tasks as well (Requires Oscar)? (y/n)")
     webmin_access = False
     one_by_one = True
+    # Start the loop
     if one_by_one:
         create_accounts_one_by_one(driver, webmin_access)
+
     # End the program by closing the driver
     driver.quit()
 

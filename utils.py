@@ -6,12 +6,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 def confirm_action(message: str) -> bool:
-    """ Presents a simple confirmation message and returns True if the input is 'y' or 'yes', returns False otherwise
-    
+    """ Presents a simple confirmation message and returns a boolean based on the yes/no value inputted
+
     Args:
         message (str): the message to be presented to the user
     Returns:
-        bool: True if the user inputs 'y' or 'yes'. Otherwise false
+        bool: True if the user inputs 'y' or 'yes'. False if user inputs 'n' or 'no'.
     """
     response = prompt_to_choose_option(message, ["yes", "y", "no", "n"])
     return (response == "y" or response == "yes")
@@ -54,6 +54,8 @@ def prompt_to_choose_option(prompt: str, acceptable_inputs: list, case_sensitive
 
         if user_input.strip() in acceptable_inputs:
             return user_input
+
+        # Format the string to present to the user if input is invalid
         choices_string = ""
         number_of_choices = len(acceptable_inputs)
         if number_of_choices == 1:
@@ -65,6 +67,8 @@ def prompt_to_choose_option(prompt: str, acceptable_inputs: list, case_sensitive
             for i in range(0, number_of_choices - 1):
                 choices_string += "'" + acceptable_inputs[i] + "', "
             choices_string += "or '" + acceptable_inputs[-1] + "'."
+
+        # Ask the user to re-input
         user_input = input(
             user_input + " is not an acceptable input. " + choices_string + " (Ignore quotation marks): ")
             

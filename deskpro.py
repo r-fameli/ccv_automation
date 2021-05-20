@@ -9,7 +9,7 @@ def generate_user_notification_html(user_info: User) -> None:
     """ Generates a message in HTML to send back to the user in Deskpro to notify them that their account has been created
 
     Args:
-        user_info (UserInfo): the information of the user that stores their name and username
+        user_info (User): the information of the user that stores their name and username
     Returns:
         None: prints an HTML string that can be input using Deskpro's html feature
     """
@@ -37,6 +37,14 @@ def generate_user_notification_html(user_info: User) -> None:
     In Deskpro, select the option to insert using HTML and paste the message in. Then turn off the HTML setting.
      Press enter once you have added your name and sent the message.''')
 
+
+# def insert_into_deskpro(user_notification: str, ticket_num: int) -> None:
+#     """ Inserts the user notification into Deskpro for the appropriate ticket
+
+#     Args:
+#         user_notification (str): the notification that will be sent to the user
+#         ticket_num (int): the number of the ticket to insert into
+#     """
 
      # def scrape_from_deskpro() -> list:
 #     print("")
