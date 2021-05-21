@@ -17,7 +17,7 @@ from grouper import add_user_to_grouper
 from listserv import add_user_to_listserv
 from webmin import add_user_in_webmin
 from sheets import add_user_to_google_sheets
-from deskpro import generate_user_notification_html
+from deskpro import  insert_into_deskpro, print_deskpro_notification_in_terminal
 
 # selenium imports
 from selenium import webdriver
@@ -33,22 +33,24 @@ def main():
     """ The main function of the program """    
     driver = choose_driver()
     # webmin_access = confirm_action("Would you like to automate Webmin tasks as well (Requires Oscar)? (y/n)")
+    insert_into_deskpro = confirm_action("Would you like to have messages automatically inserted into Deskpro? (y/n)")
     webmin_access = False
     one_by_one = True
     # Start the loop
     if one_by_one:
-        create_accounts_one_by_one(driver, webmin_access)
+        create_accounts_one_by_one(driver, webmin_access, insert_into_deskpro)
 
     # End the program by closing the driver
     driver.quit()
 
 
-def create_accounts_one_by_one(driver: webdriver, webmin_access = False):
+def create_accounts_one_by_one(driver: webdriver, webmin_access = False, deskpro_insertion = False):
     """ Creates user accounts one by one.
 
     Args:
         driver (webdriver): the browser driver to use
         webmin_access (bool): whether or not the user has access to webmin
+        deskpro_insertion (bool): whether or not the user would like messages to be inserted automatically into Deskpro
     Returns:
         None
     """
@@ -61,8 +63,9 @@ def create_accounts_one_by_one(driver: webdriver, webmin_access = False):
         (On Linux-based terminals, use Ctrl+Insert, Ctrl+Shift+V, or right click to paste)
         ''')
         # Example: 4/20/2021 - 09:15,rfameli1@brown.edu,Riki Fameli,riki_fameli@brown.edu,pi_email@brown.edu,620123553
+        if deskpro_insertion:
+            ticket_id = input("Insert ID of the ticket: ")
         next_user = receive_and_parse_account_str()
-
         add_user_to_google_sheets(next_user.username, "")
         if webmin_access:
             webmin_batch_string = input("Please enter the generated string for Webmin: ").strip()
@@ -71,8 +74,11 @@ def create_accounts_one_by_one(driver: webdriver, webmin_access = False):
         add_user_in_webmin(driver, webmin_batch_string, next_user.username, webmin_access) # TODO add user in Webmin if possible, including priority groups if required
         add_user_to_grouper(driver, next_user.email)
         add_user_to_listserv(driver, next_user.email)
-        time.sleep(1)
-        generate_user_notification_html(next_user)
+        if deskpro_insertion:
+            insert_into_deskpro(driver, ticket_id, next_user)
+        else:
+            print_deskpro_notification_in_terminal(next_user)
+        # generate_user_notification_html(next_user)
         # If more users need to be added, the loop will continue running
         running = confirm_action("Would you like to add another user? (y/n)")
 
