@@ -31,6 +31,10 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
     
     # Log into Grouper
     while "Grouper, the Internet2 groups" not in driver.title:
+        try:
+            driver.find_element_by_xpath("//input[@value='Brown Account Login'").click()
+        except:
+            pass    
         # Log in to Grouper manually
         print("Waiting for manual Grouper login (times out after 60 seconds)")
         try:

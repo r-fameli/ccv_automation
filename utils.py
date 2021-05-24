@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 
 def confirm_action(message: str) -> bool:
     """ Presents a simple confirmation message and returns a boolean based on the yes/no value inputted
@@ -44,7 +45,7 @@ def prompt_to_choose_option(prompt: str, acceptable_inputs: list, case_sensitive
         raise Exception("prompt_to_choose_option requires a non-empty list of acceptable inputs")
 
     if not case_sensitive:
-        acceptable_inputs = map(lambda choice: choice.casefold(), acceptable_inputs)
+        acceptable_inputs = list(map(lambda choice: choice.casefold(), acceptable_inputs))
 
     user_input = input(prompt)
     checking_inputs = True
@@ -72,6 +73,31 @@ def prompt_to_choose_option(prompt: str, acceptable_inputs: list, case_sensitive
         user_input = input(
             user_input + " is not an acceptable input. " + choices_string + " (Ignore quotation marks): ")
             
+
+def wait_and_click_by_xpath(driver: webdriver, xpath: str, timeout=15) -> None:
+    try:
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+        driver.find_element_by_xpath(xpath).click()
+    except TimeoutException as ex:
+        print("ERROR: " + str(ex))
+        timeout_action(driver)
+
+def wait_and_return_element_by_xpath(driver: webdriver, xpath: str, timeout=15):
+    try:
+        WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        return driver.find_element_by_xpath(xpath)
+    except TimeoutException as ex:
+        print("ERROR: " + str(ex))
+        timeout_action(driver)
+
+def wait_and_return_elements_by_xpath(driver: webdriver, xpath: str, timeout=15):
+    try:
+        WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        return driver.find_elements_by_xpath(xpath)
+    except TimeoutException as ex:
+        print("ERROR: " + str(ex))
+        timeout_action(driver)
+
 # prompt_to_choose_option("one", ["one"])
 # prompt_to_choose_option("two", ["one", "two"])
 # prompt_to_choose_option("three", ["one", "two", "three"])

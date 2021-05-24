@@ -2,6 +2,8 @@
 
 Used to handle all interactions with Deskpro
 """
+import re
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
@@ -12,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.firefox import GeckoDriverManager
 
-from utils import timeout_action
+from utils import timeout_action, wait_and_click_by_xpath, wait_and_return_element_by_xpath, wait_and_return_elements_by_xpath
 from user_data import User
 
 # ticket_message = driver.find_elements_by_xpath("//div[@class='body-text-message unreset']")[-1]
@@ -44,23 +46,10 @@ def print_deskpro_notification_in_terminal(user_info: User) -> None:
     In Deskpro, select the option to insert using HTML and paste the message in. Then turn off the HTML setting.
      Press enter once you have added your name and sent the message.''')
 
-# def retrieve_user_info_from_deskpro(driver: webdriver, ticket_id: int) -> User:
-#     """ Opens Deskpro and finds the given ticket. Scrapes the last message to receive the relevant user information.
 
-#     Args:
-#         driver (webdriver): the browser driver in use
-#         ticket_id (int): the ID of the ticket
-#     Returns:
-#         User: a user's information (name, email)
-#     """
-#     if clear_tabs_and_find_ticket(driver, ticket_id):
-        
-#     else:
-#         print("Could not retrieve user information automatically from Deskpro.")
-#         return None
         
 
-def insert_into_deskpro(driver: webdriver, ticket_id: int, user_info: User):
+def insert_notification_into_deskpro(driver: webdriver, ticket_id: int, user_info: User):
     """ Inserts the given notification HTML into a ticket
 
     Args:
@@ -119,6 +108,9 @@ def clear_tabs_and_find_ticket(driver: webdriver, ticket_id: int):
     """
     deskpro_login(driver)
 
+    # Go to your open tickets
+    WebDriverWait(driver, 15).until_not(EC.presence_of_element_located((By.ID, "dp_loading")))
+    wait_and_click_by_xpath(driver, "//div[@class='item']/h3[text()='Open Tickets - Me']")
     # Ensure that no ticket tabs are open
     tabs_open = len(driver.find_elements_by_xpath("//a[@class='ng-binding']"))
     if tabs_open != 0:
@@ -129,8 +121,6 @@ def clear_tabs_and_find_ticket(driver: webdriver, ticket_id: int):
         WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//a[@ng-click='closeAll()']")))
         driver.find_element_by_xpath("//a[@ng-click='closeAll()']").click()
         WebDriverWait(driver, 5).until_not(EC.presence_of_element_located((By.XPATH, "//a[@class='ng-binding']")))
-
-
     
     # Find the ticket in the list
     ticket_xpath = "//span[@class='obj-id' and text()='#" + str(ticket_id) + "']"
@@ -173,12 +163,25 @@ def deskpro_login(driver: webdriver):
     print("Deskpro loaded")
 
 
-def wait_and_click_by_xpath(driver: webdriver, xpath: str, timeout=15) -> None:
-    try:
-        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, xpath)))
-    except TimeoutException as ex:
-        print("ERROR: " + str(ex))
-        timeout_action(driver)
+def retrieve_account_string_from_deskpro(driver: webdriver, ticket_id: int) -> str:
+    """ Opens Deskpro and finds the given ticket. Scrapes the last message to receive the relevant account string.
+
+    Args:
+        driver (webdriver): the browser driver in use
+        ticket_id (int): the ID of the ticket
+    Returns:
+        str: an account string of the form <date>,<brown_id>,<full_name>,<email>,<pi_email>,<phone>
+    """
+    if clear_tabs_and_find_ticket(driver, ticket_id):
+        # Get the last message
+        first_message_element = wait_and_return_element_by_xpath(driver, "(//div[@class='body-text-message unreset'])[last()]")
+        first_message = first_message_element.get_attribute('innerText')
+        account_str = re.search(r"\d+/\d+/\d+.*", first_message).group()
+        print("Found account string " + account_str)
+        return account_str
+    else:
+        print("Could not retrieve user information automatically from Deskpro.")
+        return ""
 
 # def test_deskpro():
 #     test_user = User("Riki", "rfameli1", "riki_fameli@brown.edu")

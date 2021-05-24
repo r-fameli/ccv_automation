@@ -9,6 +9,8 @@ import time
 import getpass
 import re
 
+from selenium.common.exceptions import TimeoutException
+
 # local file imports
 from utils import confirm_action, timeout_action, prompt_to_choose_option
 from user_data import User, ProgramSettings
@@ -17,7 +19,7 @@ from grouper import add_user_to_grouper
 from listserv import add_user_to_listserv
 from webmin import add_user_in_webmin
 from sheets import add_user_to_google_sheets
-from deskpro import  insert_into_deskpro, print_deskpro_notification_in_terminal
+from deskpro import insert_notification_into_deskpro, retrieve_account_string_from_deskpro, print_deskpro_notification_in_terminal
 
 # selenium imports
 from selenium import webdriver
@@ -30,67 +32,95 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 def main():
-    """ The main function of the program """    
+    """ The main function of the program """
     driver = choose_driver()
     # webmin_access = confirm_action("Would you like to automate Webmin tasks as well (Requires Oscar)? (y/n)")
-    insert_into_deskpro = confirm_action("Would you like to have messages automatically inserted into Deskpro? (y/n)")
+    scrape_from_deskpro = confirm_action(
+        "Would you like to automatically retrieve account strings from Deskpro? (y/n)")
+    insert_into_deskpro = confirm_action(
+        "Would you like to have messages automatically inserted into Deskpro? (y/n)")
     webmin_access = False
     one_by_one = True
     # Start the loop
     if one_by_one:
-        create_accounts_one_by_one(driver, webmin_access, insert_into_deskpro)
+        create_accounts_one_by_one(driver, webmin_access, scrape_from_deskpro, insert_into_deskpro)
 
     # End the program by closing the driver
     driver.quit()
 
 
-def create_accounts_one_by_one(driver: webdriver, webmin_access = False, deskpro_insertion = False):
+def create_accounts_one_by_one(driver: webdriver, webmin_access=False, scrape_from_deskpro=False, insert_into_deskpro=False):
     """ Creates user accounts one by one.
 
     Args:
         driver (webdriver): the browser driver to use
         webmin_access (bool): whether or not the user has access to webmin
-        deskpro_insertion (bool): whether or not the user would like messages to be inserted automatically into Deskpro
+        scrape_from_deskpro (bool): whether or not the user would like account strings to be retrieved from Deskpro
+        insert_into_deskpro (bool): whether or not the user would like messages to be inserted automatically into Deskpro
     Returns:
         None
     """
     running = True
     while (running):
-        print('''\n
-        CREATING NEW USER ACCOUNT
-        ==============================
-        Paste the full string from Deskpro that holds the user's information (e.g. 4/20/2021 - 09:15,uname@brown.edu,Full Name,email@brown.edu,pi_email@brown.edu,123456789)pygame.examples.mask.main()
-        (On Linux-based terminals, use Ctrl+Insert, Ctrl+Shift+V, or right click to paste)
-        ''')
-        # Example: 4/20/2021 - 09:15,rfameli1@brown.edu,Riki Fameli,riki_fameli@brown.edu,pi_email@brown.edu,620123553
-        if deskpro_insertion:
-            ticket_id = input("Insert ID of the ticket: ")
-        next_user = receive_and_parse_account_str()
-        add_user_to_google_sheets(next_user.username, "")
-        if webmin_access:
-            webmin_batch_string = input("Please enter the generated string for Webmin: ").strip()
-        else:
-            webmin_batch_string = ""
-        add_user_in_webmin(driver, webmin_batch_string, next_user.username, webmin_access) # TODO add user in Webmin if possible, including priority groups if required
-        add_user_to_grouper(driver, next_user.email)
-        add_user_to_listserv(driver, next_user.email)
-        if deskpro_insertion:
-            insert_into_deskpro(driver, ticket_id, next_user)
-        else:
-            print_deskpro_notification_in_terminal(next_user)
-        # generate_user_notification_html(next_user)
-        # If more users need to be added, the loop will continue running
-        running = confirm_action("Would you like to add another user? (y/n)")
+        print("CREATING NEW USER ACCOUNT")
+        print("==============================")
+            # Example: 4/20/2021 - 09:15,rfameli1@brown.edu,Riki Fameli,riki_fameli@brown.edu,pi_email@brown.edu,801023801
+            # Get the ticket id if required
+        try:
+            if scrape_from_deskpro or insert_into_deskpro:
+                ticket_id = input("Insert ID of the ticket: ")
 
-def receive_and_parse_account_str() -> User:
-    """ Asks the user for an account string, returning a User if it's valid and asking the user to re-input if it is not
+            # Get the account string
+            if scrape_from_deskpro:
+                print("Scraping account string from Deskpro. Please log in when the login screen appears")
+                account_str = retrieve_account_string_from_deskpro(
+                    driver, ticket_id)
+            else:
+                print("Paste the full string from Deskpro that holds the user's information (e.g. 4/20/2021 - 09:15,uname@brown.edu,Full Name,email@brown.edu,pi_email@brown.edu,123456789).")
+                print("(On Linux-based terminals, use Ctrl+Insert, Ctrl+Shift+V, or right click to paste)")
+                account_str = input("Account creation string: ")
 
+            # Parse the account string
+            next_user = parse_account_str(account_str)
+
+            # Add the user to relevant web services
+            add_user_to_google_sheets(next_user.username, "")
+            if webmin_access:
+                webmin_batch_string = input(
+                    "Please enter the generated string for Webmin: ").strip()
+            else:
+                webmin_batch_string = ""
+            # TODO add user in Webmin if possible, including priority groups if required
+            add_user_in_webmin(driver, webmin_batch_string,
+                            next_user.username, webmin_access)
+            add_user_to_grouper(driver, next_user.email)
+            add_user_to_listserv(driver, next_user.email)
+
+            # Notify the user
+            if insert_into_deskpro:
+                insert_notification_into_deskpro(driver, ticket_id, next_user)
+            else:
+                print_deskpro_notification_in_terminal(next_user)
+
+            # If more users need to be added, the loop will continue running
+            running = confirm_action("Would you like to add another user? (y/n)")
+        except TimeoutException as ex:
+            print("A timeout error occurred: " + str(ex))
+            running = confirm_action("Would you like to restart the loop to try again? (y/n) ")
+
+
+def parse_account_str(account_string: str) -> User:
+    """ Checks to see if the account string is valid, prompting the user to re-input if it is not 
+
+    Args:
+        account_string: the account string to check (e.g. 5/24/2021 - 01:34,<user>@brown.edu,<full name>,<email>@brown.edu,<PI>,<number>) 
     Returns:
         User: a User with the correct information
     """
-    account_creation_strings = input("Account creation string: ").split(',')
-    ask_for_reinput = lambda: input("Please input the corrected account string: ").split(',')
-    while (True):
+    account_creation_strings = account_string.split(',')
+    def ask_for_reinput(): return input(
+        "Please input the corrected account string: ").split(',')
+    while True:
         if len(account_creation_strings) != 6:
             print("Account string must have 6 comma-separated fields")
             account_creation_strings = ask_for_reinput()
@@ -118,7 +148,8 @@ def choose_driver():
     )
     if browser_preference == 'firefox':
         print("Initializing geckodriver for Firefox")
-        driver = webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install())
+        driver = webdriver.Firefox(
+            executable_path=GeckoDriverManager(cache_valid_range=1).install())
     elif browser_preference == 'chrome':
         driver = webdriver.Chrome(ChromeDriverManager().install())
         print("Initializing ChromeDriver for Chrome...")
@@ -127,6 +158,5 @@ def choose_driver():
 
     return driver
 
+
 main()
-
-
