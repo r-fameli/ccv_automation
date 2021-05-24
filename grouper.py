@@ -63,8 +63,13 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
             # Wait until the dropdown menu is hidden
             WebDriverWait(driver, 60).until(EC.invisibility_of_element_located((By.XPATH, "//div[@class='dhx_combo_list '][2]")))
         else:
+            # If there's only one option
             user_option = driver.find_element_by_xpath(dropdown_option_xpath + "/div")
             user_info = user_option.get_attribute('innerText')
+            # If a no user found message shows up:
+            if "No results found" in user_info:
+                print("No user found based on search term " + search_term)
+                return False
             print("Found user " + user_info)
             user_option.click()
 
@@ -72,6 +77,7 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
 
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "simplemodal-data")))
         message = driver.find_element_by_id("simplemodal-data").get_attribute('innerText')
+        # Clean up the message if it includes the 'OK' text at the end
         if message.endswith('OK'):
             message = message[:-2]
         print("GROUPER ==> " + message)

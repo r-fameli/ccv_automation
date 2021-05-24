@@ -15,6 +15,16 @@ from webdriver_manager.firefox import GeckoDriverManager
 from utils import timeout_action
 from user_data import User
 
+# ticket_message = driver.find_elements_by_xpath("//div[@class='body-text-message unreset']")[-1]
+
+    # def scrape_from_deskpro() -> list:
+#     print("")
+#     # TODO
+#     # find last element where xpath is //div[@class='body-text-message unreset'] (ENSURE THAT ONLY ONE TAB IS OPEN IN DESKPRO)
+#     # TO CLOSE ALL TABS:
+#     # right click in //div[@class='deskproTabListInner ng-isolate-scope']
+#     # click on //li[@ng-show='showCloseAll()']
+#     #
 
 def print_deskpro_notification_in_terminal(user_info: User) -> None:
     """ Print a message in HTML to send back to the user in Deskpro to notify them that their account has been created
@@ -34,6 +44,21 @@ def print_deskpro_notification_in_terminal(user_info: User) -> None:
     In Deskpro, select the option to insert using HTML and paste the message in. Then turn off the HTML setting.
      Press enter once you have added your name and sent the message.''')
 
+# def retrieve_user_info_from_deskpro(driver: webdriver, ticket_id: int) -> User:
+#     """ Opens Deskpro and finds the given ticket. Scrapes the last message to receive the relevant user information.
+
+#     Args:
+#         driver (webdriver): the browser driver in use
+#         ticket_id (int): the ID of the ticket
+#     Returns:
+#         User: a user's information (name, email)
+#     """
+#     if clear_tabs_and_find_ticket(driver, ticket_id):
+        
+#     else:
+#         print("Could not retrieve user information automatically from Deskpro.")
+#         return None
+        
 
 def insert_into_deskpro(driver: webdriver, ticket_id: int, user_info: User):
     """ Inserts the given notification HTML into a ticket
@@ -101,20 +126,25 @@ def clear_tabs_and_find_ticket(driver: webdriver, ticket_id: int):
         print("Closing Deskpro tabs")
         tabs_bar = driver.find_element_by_xpath("//div[@class='deskproTabListInner ng-isolate-scope']")
         ActionChains(driver).context_click(tabs_bar)
+        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//a[@ng-click='closeAll()']")))
         driver.find_element_by_xpath("//a[@ng-click='closeAll()']").click()
         WebDriverWait(driver, 5).until_not(EC.presence_of_element_located((By.XPATH, "//a[@class='ng-binding']")))
 
+
+    
     # Find the ticket in the list
     ticket_xpath = "//span[@class='obj-id' and text()='#" + str(ticket_id) + "']"
     try:
-        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, ticket_xpath)))
+        WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, ticket_xpath)))
         ticket_id_indicator = driver.find_element_by_xpath(ticket_xpath)
     except:
         print("Could not find ticket with id " + str(ticket_id))
         return False
 
+    WebDriverWait(driver, 10).until_not(EC.presence_of_element_located((By.ID, "dp_loading")))
     ticket_id_indicator.click()
     return True
+    
 
 
 def deskpro_login(driver: webdriver):
@@ -142,6 +172,14 @@ def deskpro_login(driver: webdriver):
     WebDriverWait(driver, 15).until_not(EC.presence_of_element_located((By.XPATH, "//h1[text()='Loading Interface']")))
     print("Deskpro loaded")
 
+
+def wait_and_click_by_xpath(driver: webdriver, xpath: str, timeout=15) -> None:
+    try:
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+    except TimeoutException as ex:
+        print("ERROR: " + str(ex))
+        timeout_action(driver)
+
 # def test_deskpro():
 #     test_user = User("Riki", "rfameli1", "riki_fameli@brown.edu")
 #     insert_into_deskpro(
@@ -154,13 +192,4 @@ def deskpro_login(driver: webdriver):
 # test_deskpro()
 
 
-# ticket_message = driver.find_elements_by_xpath("//div[@class='body-text-message unreset']")[-1]
 
-    # def scrape_from_deskpro() -> list:
-#     print("")
-#     # TODO
-#     # find last element where xpath is //div[@class='body-text-message unreset'] (ENSURE THAT ONLY ONE TAB IS OPEN IN DESKPRO)
-#     # TO CLOSE ALL TABS:
-#     # right click in //div[@class='deskproTabListInner ng-isolate-scope']
-#     # click on //li[@ng-show='showCloseAll()']
-#     #
