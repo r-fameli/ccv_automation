@@ -66,47 +66,49 @@ def create_accounts_one_by_one(driver: webdriver, webmin_access=False, scrape_fr
         print("==============================")
             # Example: 4/20/2021 - 09:15,rfameli1@brown.edu,Riki Fameli,riki_fameli@brown.edu,pi_email@brown.edu,801023801
             # Get the ticket id if required
-        try:
-            if scrape_from_deskpro or insert_into_deskpro:
-                ticket_id = input("Insert ID of the ticket: ")
+        # try:
+        if scrape_from_deskpro or insert_into_deskpro:
+            ticket_id = input("Insert ID of the ticket: ")
 
-            # Get the account string
-            if scrape_from_deskpro:
-                print("Scraping account string from Deskpro. Please log in when the login screen appears")
-                account_str = retrieve_account_string_from_deskpro(
-                    driver, ticket_id)
-            else:
-                print("Paste the full string from Deskpro that holds the user's information (e.g. 4/20/2021 - 09:15,uname@brown.edu,Full Name,email@brown.edu,pi_email@brown.edu,123456789).")
-                print("(On Linux-based terminals, use Ctrl+Insert, Ctrl+Shift+V, or right click to paste)")
-                account_str = input("Account creation string: ")
+        # Get the account string
+        if scrape_from_deskpro:
+            print("Scraping account string from Deskpro. Please log in when the login screen appears")
+            account_str = retrieve_account_string_from_deskpro(
+                driver, ticket_id)
+        else:
+            print("Paste the full string from Deskpro that holds the user's information (e.g. 4/20/2021 - 09:15,uname@brown.edu,Full Name,email@brown.edu,pi_email@brown.edu,123456789).")
+            print("(On Linux-based terminals, use Ctrl+Insert, Ctrl+Shift+V, or right click to paste)")
+            account_str = input("Account creation string: ")
 
-            # Parse the account string
-            next_user = parse_account_str(account_str)
+        # Parse the account string
+        next_user = parse_account_str(account_str)
 
-            # Add the user to relevant web services
-            add_user_to_google_sheets(next_user.username, "")
-            if webmin_access:
-                webmin_batch_string = input(
-                    "Please enter the generated string for Webmin: ").strip()
-            else:
-                webmin_batch_string = ""
-            # TODO add user in Webmin if possible, including priority groups if required
-            add_user_in_webmin(driver, webmin_batch_string,
-                            next_user.username, webmin_access)
-            add_user_to_grouper(driver, next_user.email)
-            add_user_to_listserv(driver, next_user.email)
+        # Add the user to relevant web services
+        add_user_to_google_sheets(next_user.username, "")
+        if webmin_access:
+            webmin_batch_string = input(
+                "Please enter the generated string for Webmin: ").strip()
+        else:
+            webmin_batch_string = ""
+        # TODO add user in Webmin if possible, including priority groups if required
+        add_user_in_webmin(driver, webmin_batch_string,
+                        next_user.username, webmin_access)
+        add_user_to_grouper(driver, next_user.email)
+        add_user_to_listserv(driver, next_user.email)
 
-            # Notify the user
-            if insert_into_deskpro:
-                insert_notification_into_deskpro(driver, ticket_id, next_user)
-            else:
-                print_deskpro_notification_in_terminal(next_user)
+        # Notify the user
+        if insert_into_deskpro:
+            # BUG here
+            insert_notification_into_deskpro(driver, ticket_id, next_user)
+        else:
+            print_deskpro_notification_in_terminal(next_user)
 
-            # If more users need to be added, the loop will continue running
-            running = confirm_action("Would you like to add another user? (y/n)")
-        except TimeoutException as ex:
-            print("A timeout error occurred: " + str(ex))
-            running = confirm_action("Would you like to restart the loop to try again? (y/n) ")
+        # If more users need to be added, the loop will continue running
+        running = confirm_action("Would you like to add another user? (y/n)")
+        # except TimeoutException as ex:
+        #     print("A timeout error occurred:\n")
+        #     print(ex)
+        #     running = confirm_action("Would you like to restart the loop to try again? (y/n) ")
 
 
 def parse_account_str(account_string: str) -> User:

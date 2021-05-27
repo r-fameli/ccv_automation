@@ -74,12 +74,16 @@ def prompt_to_choose_option(prompt: str, acceptable_inputs: list, case_sensitive
             user_input + " is not an acceptable input. " + choices_string + " (Ignore quotation marks): ")
             
 
+# Boolean for showing stack traces
+testing = True
+
+
 def wait_and_click_by_xpath(driver: webdriver, xpath: str, timeout=15) -> None:
     try:
         WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, xpath)))
         driver.find_element_by_xpath(xpath).click()
     except TimeoutException as ex:
-        print("ERROR: " + str(ex))
+        print("Could not find object to click in time. Xpath: " + xpath)
         timeout_action(driver)
 
 def wait_and_return_element_by_xpath(driver: webdriver, xpath: str, timeout=15):
@@ -87,7 +91,7 @@ def wait_and_return_element_by_xpath(driver: webdriver, xpath: str, timeout=15):
         WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
         return driver.find_element_by_xpath(xpath)
     except TimeoutException as ex:
-        print("ERROR: " + str(ex))
+        print("Could not find object in time. Xpath: " + xpath)
         timeout_action(driver)
 
 def wait_and_return_elements_by_xpath(driver: webdriver, xpath: str, timeout=15):
@@ -95,7 +99,7 @@ def wait_and_return_elements_by_xpath(driver: webdriver, xpath: str, timeout=15)
         WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
         return driver.find_elements_by_xpath(xpath)
     except TimeoutException as ex:
-        print("ERROR: " + str(ex))
+        print("Could not find objects in time. Xpath: " + xpath)
         timeout_action(driver)
 
 # prompt_to_choose_option("one", ["one"])

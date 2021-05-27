@@ -63,13 +63,13 @@ def insert_notification_into_deskpro(driver: webdriver, ticket_id: int, user_inf
 
     if clear_tabs_and_find_ticket(driver, ticket_id):
         # Turn on the setting for inserting as HTML
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//a[@title='HTML']")))
-        html_button = driver.find_element_by_xpath("//a[@title='HTML']")
-        html_button.click()
+        print("Inserting into Deskpro")
+        html_button_xpath = "//a[@title='HTML']"
+        wait_and_click_by_xpath(driver, html_button_xpath)
         message_box = driver.find_element_by_xpath("//textarea[@name='message']")
         message_box.clear()
         message_box.send_keys(user_notification_html)
-        html_button.click()
+        wait_and_click_by_xpath(driver, html_button_xpath)
         print("Email notification has been pasted into Deskpro for ticket " + str(ticket_id))
     else:
         print("Could not automate insertion into Deskpro")
@@ -118,13 +118,18 @@ def clear_tabs_and_find_ticket(driver: webdriver, ticket_id: int):
         print("Closing Deskpro tabs")
         tabs_bar = driver.find_element_by_xpath("//div[@class='deskproTabListInner ng-isolate-scope']")
         ActionChains(driver).context_click(tabs_bar)
-        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//a[@ng-click='closeAll()']")))
-        driver.find_element_by_xpath("//a[@ng-click='closeAll()']").click()
-        WebDriverWait(driver, 5).until_not(EC.presence_of_element_located((By.XPATH, "//a[@class='ng-binding']")))
+        try:
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//a[@ng-click='closeAll()']")))
+            driver.find_element_by_xpath("//a[@ng-click='closeAll()']").click()
+            WebDriverWait(driver, 5).until_not(EC.presence_of_element_located((By.XPATH, "//a[@class='ng-binding']")))
+        except:
+            pass
+        
     
-    # Find the ticket in the list
-    ticket_xpath = "//span[@class='obj-id' and text()='#" + str(ticket_id) + "']"
     try:
+        # Find the ticket in the list
+        print("Opening ticket " + str(ticket_id))
+        ticket_xpath = "//span[@class='obj-id' and text()='#" + str(ticket_id) + "']"
         WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, ticket_xpath)))
         ticket_id_indicator = driver.find_element_by_xpath(ticket_xpath)
     except:
@@ -159,7 +164,7 @@ def deskpro_login(driver: webdriver):
             break
         except TimeoutException as ex:
             timeout_action(driver)
-    WebDriverWait(driver, 15).until_not(EC.presence_of_element_located((By.XPATH, "//h1[text()='Loading Interface']")))
+    WebDriverWait(driver, 20).until_not(EC.presence_of_element_located((By.XPATH, "//h1[text()='Loading Interface']")))
     print("Deskpro loaded")
 
 
@@ -183,6 +188,9 @@ def retrieve_account_string_from_deskpro(driver: webdriver, ticket_id: int) -> s
         print("Could not retrieve user information automatically from Deskpro.")
         return ""
 
+
+
+
 # def test_deskpro():
 #     test_user = User("Riki", "rfameli1", "riki_fameli@brown.edu")
 #     insert_into_deskpro(
@@ -192,6 +200,11 @@ def retrieve_account_string_from_deskpro(driver: webdriver, ticket_id: int) -> s
 #          245422
 #     )
 #
+# insert_notification_into_deskpro( 
+#     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()), 
+#     245977, 
+#     User("Jade", "jkemp3", "niloufar_razmi@brown.edu")
+#     )
 # test_deskpro()
 
 
