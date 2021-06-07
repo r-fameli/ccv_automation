@@ -17,17 +17,6 @@ from webdriver_manager.firefox import GeckoDriverManager
 from utils import timeout_action, wait_and_click_by_xpath, wait_and_return_element_by_xpath, wait_and_return_elements_by_xpath
 from user_data import User
 
-# ticket_message = driver.find_elements_by_xpath("//div[@class='body-text-message unreset']")[-1]
-
-    # def scrape_from_deskpro() -> list:
-#     print("")
-#     # TODO
-#     # find last element where xpath is //div[@class='body-text-message unreset'] (ENSURE THAT ONLY ONE TAB IS OPEN IN DESKPRO)
-#     # TO CLOSE ALL TABS:
-#     # right click in //div[@class='deskproTabListInner ng-isolate-scope']
-#     # click on //li[@ng-show='showCloseAll()']
-#     #
-
 def print_deskpro_notification_in_terminal(user_info: User) -> None:
     """ Print a message in HTML to send back to the user in Deskpro to notify them that their account has been created
 
@@ -46,8 +35,6 @@ def print_deskpro_notification_in_terminal(user_info: User) -> None:
     In Deskpro, select the option to insert using HTML and paste the message in. Then turn off the HTML setting.
      Press enter once you have added your name and sent the message.''')
 
-
-        
 
 def insert_notification_into_deskpro(driver: webdriver, ticket_id: int, user_info: User):
     """ Inserts the given notification HTML into a ticket
@@ -71,9 +58,29 @@ def insert_notification_into_deskpro(driver: webdriver, ticket_id: int, user_inf
         message_box.send_keys(user_notification_html)
         wait_and_click_by_xpath(driver, html_button_xpath)
         print("Email notification has been pasted into Deskpro for ticket " + str(ticket_id))
+        input("Press enter once you have added your name and sent the message.")
     else:
         print("Could not automate insertion into Deskpro")
 
+def retrieve_account_string_from_deskpro(driver: webdriver, ticket_id: int) -> str:
+    """ Opens Deskpro and finds the given ticket. Scrapes the last message to receive the relevant account string.
+
+    Args:
+        driver (webdriver): the browser driver in use
+        ticket_id (int): the ID of the ticket
+    Returns:
+        str: an account string of the form <date>,<brown_id>,<full_name>,<email>,<pi_email>,<phone>
+    """
+    if clear_tabs_and_find_ticket(driver, ticket_id):
+        # Get the last message
+        first_message_element = wait_and_return_element_by_xpath(driver, "(//div[@class='body-text-message unreset'])[last()]")
+        first_message = first_message_element.get_attribute('innerText')
+        account_str = re.search(r"\d+/\d+/\d+.*", first_message).group()
+        print("Found account string " + account_str)
+        return account_str
+    else:
+        print("Could not retrieve user information automatically from Deskpro.")
+        return ""
 
 def generate_user_notification_html(user_info: User) -> str:
     """ Generates a message in HTML to send back to the user in Deskpro to notify them that their account has been created
@@ -108,39 +115,9 @@ def clear_tabs_and_find_ticket(driver: webdriver, ticket_id: int):
     """
     deskpro_login(driver)
 
-    # Go to your open tickets
-    WebDriverWait(driver, 15).until_not(EC.presence_of_element_located((By.ID, "dp_loading")))
-    wait_and_click_by_xpath(driver, "//div[@class='item']/h3[text()='Open Tickets - Me']")
-    # Ensure that no ticket tabs are open
-    tabs_open = len(driver.find_elements_by_xpath("//a[@class='ng-binding']"))
-    if tabs_open != 0:
-        # Right click the tabs bar and close all tabs
-        print("Closing Deskpro tabs")
-        tabs_bar = driver.find_element_by_xpath("//div[@class='deskproTabListInner ng-isolate-scope']")
-        ActionChains(driver).context_click(tabs_bar)
-        try:
-            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//a[@ng-click='closeAll()']")))
-            driver.find_element_by_xpath("//a[@ng-click='closeAll()']").click()
-            WebDriverWait(driver, 5).until_not(EC.presence_of_element_located((By.XPATH, "//a[@class='ng-binding']")))
-        except:
-            pass
-        
-    
-    try:
-        # Find the ticket in the list
-        print("Opening ticket " + str(ticket_id))
-        ticket_xpath = "//span[@class='obj-id' and text()='#" + str(ticket_id) + "']"
-        WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, ticket_xpath)))
-        ticket_id_indicator = driver.find_element_by_xpath(ticket_xpath)
-    except:
-        print("Could not find ticket with id " + str(ticket_id))
-        return False
-
-    WebDriverWait(driver, 10).until_not(EC.presence_of_element_located((By.ID, "dp_loading")))
-    ticket_id_indicator.click()
+    print("Opening ticket " + str(ticket_id))
+    driver.get("https://ithelp.brown.edu/agent/#app.tickets,t.o:" + str(ticket_id))
     return True
-    
-
 
 def deskpro_login(driver: webdriver):
     """ Waits for the user to log into Deskpro
@@ -165,47 +142,8 @@ def deskpro_login(driver: webdriver):
         except TimeoutException as ex:
             timeout_action(driver)
     WebDriverWait(driver, 20).until_not(EC.presence_of_element_located((By.XPATH, "//h1[text()='Loading Interface']")))
+    WebDriverWait(driver, 15).until_not(EC.presence_of_element_located((By.ID, "dp_loading")))
     print("Deskpro loaded")
-
-
-def retrieve_account_string_from_deskpro(driver: webdriver, ticket_id: int) -> str:
-    """ Opens Deskpro and finds the given ticket. Scrapes the last message to receive the relevant account string.
-
-    Args:
-        driver (webdriver): the browser driver in use
-        ticket_id (int): the ID of the ticket
-    Returns:
-        str: an account string of the form <date>,<brown_id>,<full_name>,<email>,<pi_email>,<phone>
-    """
-    if clear_tabs_and_find_ticket(driver, ticket_id):
-        # Get the last message
-        first_message_element = wait_and_return_element_by_xpath(driver, "(//div[@class='body-text-message unreset'])[last()]")
-        first_message = first_message_element.get_attribute('innerText')
-        account_str = re.search(r"\d+/\d+/\d+.*", first_message).group()
-        print("Found account string " + account_str)
-        return account_str
-    else:
-        print("Could not retrieve user information automatically from Deskpro.")
-        return ""
-
-
-
-
-# def test_deskpro():
-#     test_user = User("Riki", "rfameli1", "riki_fameli@brown.edu")
-#     insert_into_deskpro(
-#         webdriver.Firefox(executable_path=GeckoDriverManager(
-#             cache_valid_range=1).install()),
-#         generate_user_notification_html(test_user),
-#          245422
-#     )
-#
-# insert_notification_into_deskpro( 
-#     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()), 
-#     245977, 
-#     User("Jade", "jkemp3", "niloufar_razmi@brown.edu")
-#     )
-# test_deskpro()
 
 
 

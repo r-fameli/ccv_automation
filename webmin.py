@@ -31,7 +31,6 @@ def add_user_in_webmin(driver: webdriver, batch_string: str, username: str, webm
             driver.find_element_by_id("save").click()
             WebDriverWait(driver, 60).until(
                 EC.presence_of_element_located((By.XPATH, "//h3[@class='panel-title']")))
-                # EC.presence_of_element_located((By.XPATH("//*[contains(text(), 'System Information')]"))))
 
         driver.find_element_by_xpath("//a[@href='#system']").click()
         driver.find_element_by_xpath("//a[@href='/useradmin/?xnavigation=1']").click()

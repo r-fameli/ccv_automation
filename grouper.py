@@ -32,7 +32,7 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
     # Log into Grouper
     while "Grouper, the Internet2 groups" not in driver.title:
         try:
-            driver.find_element_by_xpath("//input[@value='Brown Account Login'").click()
+            driver.find_element_by_xpath("//input[@value='Brown Account Login']").click()
         except:
             pass    
         # Log in to Grouper manually
@@ -72,7 +72,7 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
             user_info = user_option.get_attribute('innerText')
             # If a no user found message shows up:
             if "No results found" in user_info:
-                print("No user found based on search term " + search_term)
+                print("GROUPER ==> No user found based on search term " + search_term)
                 return False
             print("Found user " + user_info)
             user_option.click()
@@ -87,8 +87,6 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
         print("GROUPER ==> " + message)
         input("Press enter to continue.")
 
-        # Close the popup window
-        # driver.find_element_by_xpath("//button[@class='simplemodal-close blueButton']").click()
     except TimeoutException as ex:
         print("ERROR: " + str(ex))
         print("Closing browser.")
@@ -103,11 +101,9 @@ def add_user_to_grouper(driver: webdriver, search_term: str) -> None:
 #     "riki_fameli@brown.edu"
 # )
 
-# Multiple users
+# Multiple options
 # add_user_to_grouper(
 #     webdriver.Firefox(executable_path=GeckoDriverManager(cache_valid_range=1).install()),
 #     "riki"
 # )
 
-# No users
-# TODO

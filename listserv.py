@@ -2,11 +2,10 @@
 
 Used to handle all interactions with Listserv
 """
-import time
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -43,7 +42,7 @@ def add_user_to_listserv(driver: webdriver, user_email: str) -> None:
         email_input_box.clear()
         email_input_box.send_keys(user_email)
         email_input_box.send_keys(Keys.RETURN)
-        time.sleep(1)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//td[@class='message']")))
         message = driver.find_element_by_xpath("//td[@class='message']")
         message_text = message.get_attribute('innerText')
         print(message_text)

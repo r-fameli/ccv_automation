@@ -72,11 +72,6 @@ def prompt_to_choose_option(prompt: str, acceptable_inputs: list, case_sensitive
         # Ask the user to re-input
         user_input = input(
             user_input + " is not an acceptable input. " + choices_string + " (Ignore quotation marks): ")
-            
-
-# Boolean for showing stack traces
-testing = True
-
 
 def wait_and_click_by_xpath(driver: webdriver, xpath: str, timeout=15) -> None:
     try:
@@ -101,7 +96,3 @@ def wait_and_return_elements_by_xpath(driver: webdriver, xpath: str, timeout=15)
     except TimeoutException as ex:
         print("Could not find objects in time. Xpath: " + xpath)
         timeout_action(driver)
-
-# prompt_to_choose_option("one", ["one"])
-# prompt_to_choose_option("two", ["one", "two"])
-# prompt_to_choose_option("three", ["one", "two", "three"])
